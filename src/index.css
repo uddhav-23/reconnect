@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: theme(colors.neutral.50);
+    --fg: theme(colors.neutral.900);
+    --muted: theme(colors.neutral.600);
+    --card: theme(colors.white);
+    --border: theme(colors.neutral.200);
+    --primary: theme(colors.primary.700);
+    --primary-fg: theme(colors.white);
+  }
+
+  .dark {
+    --bg: theme(colors.neutral.900);
+    --fg: theme(colors.neutral.50);
+    --muted: theme(colors.neutral.300);
+    --card: theme(colors.neutral.800);
+    --border: theme(colors.neutral.700);
+    --primary: theme(colors.primary.600);
+    --primary-fg: theme(colors.white);
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-[var(--bg)] text-[var(--fg)] antialiased;
+  }
+}
+
+@layer components {
+  .container {
+    @apply max-w-7xl;
+  }
+}

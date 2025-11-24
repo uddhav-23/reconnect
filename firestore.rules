@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  // Helper function to check if user document exists
+  function userExists() {
+    return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+  }
+  
+  // Helper function to get user role from Firestore
+  function getUserRole() {
+    return userExists() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : null;
+  }
+  
+  // Helper function to check if user is superadmin
+  function isSuperAdmin() {
+    return request.auth != null && userExists() && getUserRole() == 'superadmin';
+  }
+  
+  // Helper function to check if user is subadmin
+  function isSubAdmin() {
+    return request.auth != null && userExists() && getUserRole() == 'subadmin';
+  }
+  
+  // Helper function to check if user is admin (superadmin or subadmin)
+  function isAdmin() {
+    return isSuperAdmin() || isSubAdmin();
+  }
+  
+  match /databases/{database}/documents {
+    // Users collection
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+    
+    // Colleges collection
+    match /colleges/{collegeId} {
+      allow read: if request.auth != null;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+    
+    // Blogs collection
+    match /blogs/{blogId} {
+      allow read: if request.auth != null || request.auth == null;
+      allow create: if request.auth != null && 
+        (request.resource.data.authorId == request.auth.uid || isAdmin());
+      allow update, delete: if request.auth != null && 
+        (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+    
+    // Achievements collection
+    match /achievements/{achievementId} {
+      allow read: if request.auth != null || request.auth == null;
+      allow create: if request.auth != null && 
+        (request.resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Connections collection
+    match /connections/{connectionId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && 
+        (resource.data.requesterId == request.auth.uid || 
+         resource.data.receiverId == request.auth.uid);
+    }
+
+    // Messages collection
+    match /messages/{messageId} {
+      allow read, create: if request.auth != null &&
+        (request.resource.data.senderId == request.auth.uid ||
+         request.resource.data.receiverId == request.auth.uid);
+    }
+  }
+}
+
