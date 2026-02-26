@@ -62,41 +62,34 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FF0080] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-20 right-20 w-32 h-32 bg-[#00FF80] border-4 border-black transform -rotate-45"></div>
-      <div className="absolute bottom-20 left-20 w-24 h-24 bg-[#0080FF] border-4 border-black transform rotate-12"></div>
-      <div className="absolute top-1/2 right-10 w-16 h-16 bg-white border-4 border-black"></div>
-      
-      <div className="w-full max-w-md relative z-10">
-        <Card variant="primary" className="transform rotate-1">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
+      <div className="w-full max-w-md">
+        <Card variant="primary">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-[#00FF80] border-4 border-black mx-auto mb-4 flex items-center justify-center transform -rotate-12">
-              <UserPlus size={32} className="text-black" />
+            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
+              <UserPlus size={28} className="text-[var(--fg)]" />
             </div>
-            <h1 className="text-3xl font-black font-mono uppercase text-black">
-              SIGN UP FOR
-              <br />
-              <span className="text-[#FF0080]">RECONNECT</span>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
+              Sign Up for Reconnect
             </h1>
-            <p className="font-mono text-sm text-gray-600 mt-2">
+            <p className="text-sm text-[var(--muted)]">
               Join our alumni network
             </p>
           </div>
           
           {error && (
-            <div className="bg-red-500 border-4 border-black p-4 mb-6 text-white font-bold font-mono uppercase text-center">
+            <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-md p-4 mb-6 text-red-800 dark:text-red-200 text-sm text-center">
               {error}
             </div>
           )}
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" size={20} />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)] z-10" size={20} />
               <Input
                 type="text"
                 name="name"
-                label="FULL NAME"
+                label="Full Name"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -106,11 +99,11 @@ const Signup: React.FC = () => {
             </div>
 
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" size={20} />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)] z-10" size={20} />
               <Input
                 type="email"
                 name="email"
-                label="EMAIL ADDRESS"
+                label="Email Address"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -120,11 +113,11 @@ const Signup: React.FC = () => {
             </div>
 
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" size={20} />
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)] z-10" size={20} />
               <Input
                 type="tel"
                 name="phone"
-                label="PHONE NUMBER (OPTIONAL)"
+                label="Phone Number (Optional)"
                 value={formData.phone}
                 onChange={handleChange}
                 className="pl-12"
@@ -133,14 +126,14 @@ const Signup: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide">
-                ACCOUNT TYPE
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Account Type
               </label>
               <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border-4 border-black shadow-[4px_4px_0px_#000000] focus:outline-none focus:shadow-[6px_6px_0px_#000000] focus:translate-x-[-2px] focus:translate-y-[-2px] transition-all duration-200 font-mono bg-white"
+                className="w-full px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] transition-colors"
                 required
               >
                 <option value="user">General User</option>
@@ -150,11 +143,11 @@ const Signup: React.FC = () => {
             </div>
             
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" size={20} />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)] z-10" size={20} />
               <Input
                 type="password"
                 name="password"
-                label="PASSWORD"
+                label="Password"
                 value={formData.password}
                 onChange={handleChange}
                 required
@@ -165,11 +158,11 @@ const Signup: React.FC = () => {
             </div>
 
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10" size={20} />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)] z-10" size={20} />
               <Input
                 type="password"
                 name="confirmPassword"
-                label="CONFIRM PASSWORD"
+                label="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
@@ -183,23 +176,22 @@ const Signup: React.FC = () => {
               type="submit" 
               variant="primary" 
               size="lg" 
-              className="w-full flex items-center justify-center gap-3"
+              className="w-full flex items-center justify-center gap-2"
               disabled={loading}
             >
-              <UserPlus size={20} />
-              {loading ? 'CREATING ACCOUNT...' : 'SIGN UP'}
+              <UserPlus size={18} />
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </Button>
           </form>
           
-          <div className="mt-8 pt-6 border-t-4 border-black text-center">
-            <p className="font-mono font-bold text-black mb-4">
+          <div className="mt-8 pt-6 border-t border-[var(--border)] text-center">
+            <p className="text-sm text-[var(--muted)] mb-4">
               Already have an account?
             </p>
-            <Link 
-              to="/login" 
-              className="inline-block bg-[#0080FF] text-white border-4 border-black px-6 py-3 font-bold font-mono uppercase hover:bg-[#0066CC] transition-colors transform hover:scale-105"
-            >
-              LOGIN HERE
+            <Link to="/login">
+              <Button variant="secondary" className="w-full">
+                Login Here
+              </Button>
             </Link>
           </div>
         </Card>
@@ -207,9 +199,9 @@ const Signup: React.FC = () => {
         <div className="text-center mt-6">
           <Link 
             to="/" 
-            className="text-white font-bold font-mono uppercase hover:text-[#00FF80] transition-colors"
+            className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition-colors inline-flex items-center gap-2"
           >
-            ← BACK TO HOME
+            ← Back to Home
           </Link>
         </div>
       </div>

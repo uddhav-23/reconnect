@@ -12,6 +12,8 @@ import {
   Timestamp,
   QueryConstraint,
   QueryDocumentSnapshot,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { College, Alumni, Blog, Achievement, User, Connection, Message } from '../types';
@@ -593,17 +595,603 @@ export const createConnection = async (connectionData: Omit<Connection, 'id' | '
 
 // ==================== MESSAGES ====================
 
-export const createMessage = async (messageData: Omit<Message, 'id' | 'createdAt'>): Promise<string> => {
+export const createMessage = async (messageData: Omit<Message, 'id' | 'createdAt' | 'read' | 'deletedBy'>): Promise<string> => {
   try {
     const data = {
       ...prepareForFirestore(messageData),
+      read: false,
+      deletedBy: [],
       createdAt: Timestamp.now(),
     };
 
     const docRef = await addDoc(collection(db, 'messages'), data);
+    
+    // Create notification for the receiver
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId: messageData.receiverId,
+        type: 'message',
+        messageId: docRef.id,
+        senderId: messageData.senderId,
+        content: `New message from ${messageData.senderId}`,
+        read: false,
+        createdAt: Timestamp.now(),
+      });
+    } catch (notifError) {
+      console.error('Failed to create notification:', notifError);
+      // Don't fail the message creation if notification fails
+    }
+    
     return docRef.id;
   } catch (error: any) {
     throw new Error(error.message || 'Failed to create message');
   }
 };
 
+export const getPendingConnections = async (userId: string): Promise<Connection[]> => {
+  try {
+    const q = query(
+      collection(db, 'connections'),
+      where('receiverId', '==', userId),
+      where('status', '==', 'pending'),
+      orderBy('createdAt', 'desc')
+    );
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: convertTimestamp(doc.data().createdAt),
+    })) as Connection[];
+  } catch (error: any) {
+    // Fallback if index is missing
+    try {
+      const q = query(
+        collection(db, 'connections'),
+        where('receiverId', '==', userId),
+        where('status', '==', 'pending')
+      );
+      const querySnapshot = await getDocs(q);
+      const connections = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      })) as Connection[];
+      return connections.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } catch (fallbackError: any) {
+      throw new Error(fallbackError.message || 'Failed to fetch pending connections');
+    }
+  }
+};
+
+export const getAllConnections = async (userId: string): Promise<Connection[]> => {
+  try {
+    // Try with orderBy first
+    try {
+      const q = query(
+        collection(db, 'connections'),
+        where('requesterId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(q);
+      
+      const requesterConnections = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      })) as Connection[];
+
+      const q2 = query(
+        collection(db, 'connections'),
+        where('receiverId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot2 = await getDocs(q2);
+      
+      const receiverConnections = querySnapshot2.docs.map((doc: QueryDocumentSnapshot) => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      })) as Connection[];
+
+      return [...requesterConnections, ...receiverConnections].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } catch (orderByError: any) {
+      // Fallback if index is missing
+      if (orderByError.code === 'failed-precondition' || orderByError.message?.includes('index')) {
+        const q = query(
+          collection(db, 'connections'),
+          where('requesterId', '==', userId)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        const requesterConnections = querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: convertTimestamp(doc.data().createdAt),
+        })) as Connection[];
+
+        const q2 = query(
+          collection(db, 'connections'),
+          where('receiverId', '==', userId)
+        );
+        const querySnapshot2 = await getDocs(q2);
+        
+        const receiverConnections = querySnapshot2.docs.map((doc: QueryDocumentSnapshot) => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: convertTimestamp(doc.data().createdAt),
+        })) as Connection[];
+
+        return [...requesterConnections, ...receiverConnections].sort(
+          (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
+      throw orderByError;
+    }
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to fetch connections');
+  }
+};
+
+export const updateConnection = async (connectionId: string, status: 'accepted' | 'rejected'): Promise<void> => {
+  try {
+    const connectionRef = doc(db, 'connections', connectionId);
+    await updateDoc(connectionRef, { status });
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to update connection');
+  }
+};
+
+export const getConnectionStatus = async (userId1: string, userId2: string): Promise<Connection | null> => {
+  try {
+    const q1 = query(
+      collection(db, 'connections'),
+      where('requesterId', '==', userId1),
+      where('receiverId', '==', userId2)
+    );
+    const snapshot1 = await getDocs(q1);
+    
+    if (!snapshot1.empty) {
+      const doc = snapshot1.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      } as Connection;
+    }
+
+    const q2 = query(
+      collection(db, 'connections'),
+      where('requesterId', '==', userId2),
+      where('receiverId', '==', userId1)
+    );
+    const snapshot2 = await getDocs(q2);
+    
+    if (!snapshot2.empty) {
+      const doc = snapshot2.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      } as Connection;
+    }
+
+    return null;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to get connection status');
+  }
+};
+
+export const getMessages = async (userId1: string, userId2: string): Promise<Message[]> => {
+  try {
+    // Get messages where userId1 is sender and userId2 is receiver
+    const q1 = query(
+      collection(db, 'messages'),
+      where('senderId', '==', userId1),
+      where('receiverId', '==', userId2),
+      orderBy('createdAt', 'asc')
+    );
+    
+    // Get messages where userId2 is sender and userId1 is receiver
+    const q2 = query(
+      collection(db, 'messages'),
+      where('senderId', '==', userId2),
+      where('receiverId', '==', userId1),
+      orderBy('createdAt', 'asc')
+    );
+    
+    let snapshot1, snapshot2;
+    try {
+      [snapshot1, snapshot2] = await Promise.all([
+        getDocs(q1),
+        getDocs(q2)
+      ]);
+    } catch (orderByError: any) {
+      // Fallback if index is missing
+      if (orderByError.code === 'failed-precondition' || orderByError.message?.includes('index')) {
+        console.warn('Index missing for messages orderBy, fetching without sorting:', orderByError.message);
+        
+        // Get messages without orderBy
+        const q1Fallback = query(
+          collection(db, 'messages'),
+          where('senderId', '==', userId1),
+          where('receiverId', '==', userId2)
+        );
+        
+        const q2Fallback = query(
+          collection(db, 'messages'),
+          where('senderId', '==', userId2),
+          where('receiverId', '==', userId1)
+        );
+        
+        [snapshot1, snapshot2] = await Promise.all([
+          getDocs(q1Fallback).catch(() => ({ docs: [] })),
+          getDocs(q2Fallback).catch(() => ({ docs: [] }))
+        ]);
+      } else {
+        throw orderByError;
+      }
+    }
+    
+    const messages = [
+      ...snapshot1.docs.map((doc: QueryDocumentSnapshot) => ({
+        id: doc.id,
+        read: doc.data().read ?? false,
+        deletedBy: doc.data().deletedBy ?? [],
+        readAt: doc.data().readAt ? convertTimestamp(doc.data().readAt) : undefined,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      })),
+      ...snapshot2.docs.map((doc: QueryDocumentSnapshot) => ({
+        id: doc.id,
+        read: doc.data().read ?? false,
+        deletedBy: doc.data().deletedBy ?? [],
+        readAt: doc.data().readAt ? convertTimestamp(doc.data().readAt) : undefined,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      }))
+    ] as Message[];
+    
+    // Filter out messages deleted by the current user
+    const filteredMessages = messages.filter(msg => 
+      !msg.deletedBy || !msg.deletedBy.includes(userId1)
+    );
+    
+    // Sort by createdAt
+    return filteredMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to fetch messages');
+  }
+};
+
+export const getAllConversations = async (userId: string): Promise<{ userId: string; lastMessage: Message; unreadCount: number }[]> => {
+  try {
+    const q = query(
+      collection(db, 'messages'),
+      where('senderId', '==', userId)
+    );
+    const sentSnapshot = await getDocs(q);
+    
+    const q2 = query(
+      collection(db, 'messages'),
+      where('receiverId', '==', userId)
+    );
+    const receivedSnapshot = await getDocs(q2);
+    
+    const allMessages = [
+      ...sentSnapshot.docs.map(doc => ({
+        id: doc.id,
+        read: doc.data().read ?? false,
+        deletedBy: doc.data().deletedBy ?? [],
+        readAt: doc.data().readAt ? convertTimestamp(doc.data().readAt) : undefined,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt)
+      }) as Message),
+      ...receivedSnapshot.docs.map(doc => ({
+        id: doc.id,
+        read: doc.data().read ?? false,
+        deletedBy: doc.data().deletedBy ?? [],
+        readAt: doc.data().readAt ? convertTimestamp(doc.data().readAt) : undefined,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt)
+      }) as Message)
+    ];
+    
+    // Filter out messages deleted by current user
+    const visibleMessages = allMessages.filter(msg => 
+      !msg.deletedBy || !msg.deletedBy.includes(userId)
+    );
+    
+    const conversationsMap = new Map<string, { lastMessage: Message; unreadCount: number }>();
+    
+    visibleMessages.forEach((msg: Message) => {
+      const otherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+      const existing = conversationsMap.get(otherUserId);
+      
+      // Count unread messages (only messages received by current user that are unread)
+      const isUnread = msg.receiverId === userId && !msg.read;
+      
+      if (!existing || new Date(msg.createdAt) > new Date(existing.lastMessage.createdAt)) {
+        conversationsMap.set(otherUserId, {
+          lastMessage: msg,
+          unreadCount: isUnread ? 1 : 0
+        });
+      } else if (isUnread) {
+        existing.unreadCount += 1;
+      }
+    });
+    
+    // Recalculate unread counts properly
+    const conversations = Array.from(conversationsMap.entries()).map(([otherUserId, data]) => {
+      // Count all unread messages from this conversation
+      const unreadCount = visibleMessages.filter(msg => {
+        const msgOtherUserId = msg.senderId === userId ? msg.receiverId : msg.senderId;
+        return msgOtherUserId === otherUserId && msg.receiverId === userId && !msg.read;
+      }).length;
+      
+      return {
+        userId: otherUserId,
+        lastMessage: data.lastMessage,
+        unreadCount
+      };
+    });
+    
+    return conversations;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to fetch conversations');
+  }
+};
+
+// Real-time listeners
+export const subscribeToPendingConnections = (
+  userId: string,
+  callback: (connections: Connection[]) => void
+): Unsubscribe => {
+  const q = query(
+    collection(db, 'connections'),
+    where('receiverId', '==', userId),
+    where('status', '==', 'pending')
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    const connections = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: convertTimestamp(doc.data().createdAt),
+    })) as Connection[];
+    callback(connections);
+  });
+};
+
+export const subscribeToMessages = (
+  userId1: string,
+  userId2: string,
+  callback: (messages: Message[]) => void
+): Unsubscribe => {
+  // Create two separate queries for the conversation
+  const q1 = query(
+    collection(db, 'messages'),
+    where('senderId', '==', userId1),
+    where('receiverId', '==', userId2)
+  );
+  
+  const q2 = query(
+    collection(db, 'messages'),
+    where('senderId', '==', userId2),
+    where('receiverId', '==', userId1)
+  );
+  
+  let unsubscribe1: Unsubscribe;
+  let unsubscribe2: Unsubscribe;
+  
+  const allMessages: Message[] = [];
+  
+  const updateMessages = () => {
+    // Filter and combine messages
+    const filtered = allMessages.filter((msg: Message) => 
+      ((msg.senderId === userId1 && msg.receiverId === userId2) ||
+       (msg.senderId === userId2 && msg.receiverId === userId1)) &&
+      (!msg.deletedBy || !msg.deletedBy.includes(userId1))
+    );
+    
+    // Sort by createdAt
+    const sorted = filtered.sort((a, b) => 
+      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+    
+    callback(sorted);
+  };
+  
+  unsubscribe1 = onSnapshot(q1, (snapshot) => {
+    // Update messages from query 1
+    snapshot.docs.forEach(doc => {
+      const index = allMessages.findIndex(m => m.id === doc.id);
+      const message = {
+        id: doc.id,
+        read: doc.data().read ?? false,
+        deletedBy: doc.data().deletedBy ?? [],
+        readAt: doc.data().readAt ? convertTimestamp(doc.data().readAt) : undefined,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      } as Message;
+      
+      if (index >= 0) {
+        allMessages[index] = message;
+      } else {
+        allMessages.push(message);
+      }
+    });
+    
+    // Remove deleted messages
+    const docIds = new Set(snapshot.docs.map(d => d.id));
+    for (let i = allMessages.length - 1; i >= 0; i--) {
+      if (allMessages[i].senderId === userId1 && allMessages[i].receiverId === userId2 && !docIds.has(allMessages[i].id)) {
+        allMessages.splice(i, 1);
+      }
+    }
+    
+    updateMessages();
+  }, (error) => {
+    console.error('Error in messages subscription:', error);
+  });
+  
+  unsubscribe2 = onSnapshot(q2, (snapshot) => {
+    // Update messages from query 2
+    snapshot.docs.forEach(doc => {
+      const index = allMessages.findIndex(m => m.id === doc.id);
+      const message = {
+        id: doc.id,
+        read: doc.data().read ?? false,
+        deletedBy: doc.data().deletedBy ?? [],
+        readAt: doc.data().readAt ? convertTimestamp(doc.data().readAt) : undefined,
+        ...doc.data(),
+        createdAt: convertTimestamp(doc.data().createdAt),
+      } as Message;
+      
+      if (index >= 0) {
+        allMessages[index] = message;
+      } else {
+        allMessages.push(message);
+      }
+    });
+    
+    // Remove deleted messages
+    const docIds = new Set(snapshot.docs.map(d => d.id));
+    for (let i = allMessages.length - 1; i >= 0; i--) {
+      if (allMessages[i].senderId === userId2 && allMessages[i].receiverId === userId1 && !docIds.has(allMessages[i].id)) {
+        allMessages.splice(i, 1);
+      }
+    }
+    
+    updateMessages();
+  }, (error) => {
+    console.error('Error in messages subscription:', error);
+  });
+  
+  return () => {
+    unsubscribe1();
+    unsubscribe2();
+  };
+};
+
+// Mark message as read
+export const markMessageAsRead = async (messageId: string, userId: string): Promise<void> => {
+  try {
+    const messageRef = doc(db, 'messages', messageId);
+    const messageDoc = await getDoc(messageRef);
+    
+    if (!messageDoc.exists()) {
+      throw new Error('Message not found');
+    }
+    
+    const messageData = messageDoc.data();
+    // Only mark as read if the current user is the receiver
+    if (messageData.receiverId === userId && !messageData.read) {
+      await updateDoc(messageRef, {
+        read: true,
+        readAt: Timestamp.now(),
+      });
+    }
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to mark message as read');
+  }
+};
+
+// Mark all messages in a conversation as read
+export const markConversationAsRead = async (userId1: string, userId2: string): Promise<void> => {
+  try {
+    // Get all unread messages where current user is receiver
+    const q = query(
+      collection(db, 'messages'),
+      where('receiverId', '==', userId1),
+      where('read', '==', false)
+    );
+    
+    const snapshot = await getDocs(q);
+    const batch = snapshot.docs
+      .filter(doc => {
+        const data = doc.data();
+        return (data.senderId === userId2 || data.receiverId === userId2);
+      })
+      .map(doc => updateDoc(doc.ref, {
+        read: true,
+        readAt: Timestamp.now(),
+      }));
+    
+    await Promise.all(batch);
+  } catch (error: any) {
+    console.error('Error marking conversation as read:', error);
+    // Don't throw, just log the error
+  }
+};
+
+// Delete a message (soft delete - add user to deletedBy array)
+export const deleteMessage = async (messageId: string, userId: string): Promise<void> => {
+  try {
+    const messageRef = doc(db, 'messages', messageId);
+    const messageDoc = await getDoc(messageRef);
+    
+    if (!messageDoc.exists()) {
+      throw new Error('Message not found');
+    }
+    
+    const messageData = messageDoc.data();
+    const deletedBy = messageData.deletedBy || [];
+    
+    // Only allow deletion if user is sender or receiver
+    if (messageData.senderId !== userId && messageData.receiverId !== userId) {
+      throw new Error('Unauthorized to delete this message');
+    }
+    
+    // Add user to deletedBy array if not already there
+    if (!deletedBy.includes(userId)) {
+      await updateDoc(messageRef, {
+        deletedBy: [...deletedBy, userId],
+      });
+    }
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to delete message');
+  }
+};
+
+// Subscribe to conversations list for real-time updates
+export const subscribeToConversations = (
+  userId: string,
+  callback: (conversations: { userId: string; lastMessage: Message; unreadCount: number }[]) => void
+): Unsubscribe => {
+  // Subscribe to all messages where user is sender or receiver
+  const q1 = query(
+    collection(db, 'messages'),
+    where('senderId', '==', userId)
+  );
+  
+  const q2 = query(
+    collection(db, 'messages'),
+    where('receiverId', '==', userId)
+  );
+  
+  let unsubscribe1: Unsubscribe;
+  let unsubscribe2: Unsubscribe;
+  
+  const updateConversations = async () => {
+    try {
+      const conversations = await getAllConversations(userId);
+      callback(conversations);
+    } catch (error) {
+      console.error('Error updating conversations:', error);
+    }
+  };
+  
+  unsubscribe1 = onSnapshot(q1, updateConversations);
+  unsubscribe2 = onSnapshot(q2, updateConversations);
+  
+  // Initial load
+  updateConversations();
+  
+  return () => {
+    unsubscribe1();
+    unsubscribe2();
+  };
+};

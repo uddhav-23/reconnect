@@ -54,19 +54,19 @@ const AlumniProfile: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="font-mono text-lg text-gray-600">Loading profile...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-[var(--muted)]">Loading profile...</p>
       </div>
     );
   }
 
   if (notFound || !alumni) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card variant="primary" className="text-center">
-          <h1 className="text-2xl font-black font-mono text-black mb-4">ALUMNI NOT FOUND</h1>
+          <h1 className="text-2xl font-semibold text-[var(--fg)] mb-4">Alumni Not Found</h1>
           <Button variant="primary" onClick={() => navigate('/alumni')}>
-            BACK TO ALUMNI
+            Back to Alumni
           </Button>
         </Card>
       </div>
@@ -113,43 +113,43 @@ const AlumniProfile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* Header */}
-      <section className="bg-[#0080FF] border-b-4 border-black py-12 px-4">
+      <section className="py-20 px-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
         <div className="container mx-auto">
           <div className="flex flex-col lg:flex-row items-start gap-8">
             {/* Profile Picture */}
-            <div className="w-32 h-32 bg-[#FF0080] border-4 border-black flex items-center justify-center transform -rotate-6">
-              <span className="text-white font-black font-mono text-4xl">
+            <div className="w-24 h-24 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shadow-subtle">
+              <span className="text-[var(--fg)] font-semibold text-2xl">
                 {alumni.name.split(' ').map(n => n[0]).join('')}
               </span>
             </div>
             
             {/* Basic Info */}
             <div className="flex-1">
-              <h1 className="text-4xl md:text-5xl font-black font-mono uppercase text-white mb-4 transform skew-y-1">
+              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-[var(--fg)]">
                 {alumni.name}
               </h1>
               <div className="space-y-2 mb-6">
-                <p className="text-xl font-bold font-mono text-[#00FF80] uppercase">
+                <p className="text-lg font-medium text-[var(--fg)]">
                   {alumni.currentPosition}
                 </p>
-                <p className="text-lg font-bold font-mono text-white flex items-center gap-2">
-                  <Building2 size={20} />
+                <p className="text-base text-[var(--muted)] flex items-center gap-2">
+                  <Building2 size={18} />
                   {alumni.currentCompany}
                 </p>
-                <p className="font-mono text-white flex items-center gap-2">
+                <p className="text-sm text-[var(--muted)] flex items-center gap-2">
                   <MapPin size={16} />
                   {alumni.location}
                 </p>
-                <p className="font-mono text-white flex items-center gap-2">
+                <p className="text-sm text-[var(--muted)] flex items-center gap-2">
                   <Calendar size={16} />
                   Class of {alumni.graduationYear}
                 </p>
               </div>
               
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-3">
                 <Button 
                   variant={isConnected ? "success" : hasRequestedConnection ? "secondary" : "secondary"} 
                   onClick={handleConnect}
@@ -158,20 +158,20 @@ const AlumniProfile: React.FC = () => {
                 >
                   <Users size={16} />
                   {isConnected
-                    ? 'CONNECTED'
+                    ? 'Connected'
                     : hasRequestedConnection
-                    ? 'REQUEST SENT'
+                    ? 'Request Sent'
                     : isConnecting
-                    ? 'SENDING...'
-                    : 'CONNECT'}
+                    ? 'Sending...'
+                    : 'Connect'}
                 </Button>
                 <Button variant="primary" onClick={handleMessage} className="flex items-center gap-2">
                   <MessageCircle size={16} />
-                  MESSAGE
+                  Message
                 </Button>
                 <Button variant="success" className="flex items-center gap-2">
                   <Share2 size={16} />
-                  SHARE PROFILE
+                  Share Profile
                 </Button>
               </div>
             </div>
@@ -184,34 +184,34 @@ const AlumniProfile: React.FC = () => {
           {/* Left Column */}
           <div className="space-y-8">
             {/* Contact Info */}
-            <Card variant="secondary" className="transform rotate-1">
-              <h2 className="font-black font-mono text-xl text-black uppercase mb-4">
-                CONTACT INFO
+            <Card variant="secondary">
+              <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">
+                Contact Info
               </h2>
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Mail size={16} className="text-gray-600" />
-                  <span className="font-mono text-sm">{alumni.email}</span>
+                  <Mail size={16} className="text-[var(--muted)]" />
+                  <span className="text-sm text-[var(--fg)]">{alumni.email}</span>
                 </div>
                 {alumni.phone && (
                   <div className="flex items-center gap-3">
-                    <Phone size={16} className="text-gray-600" />
-                    <span className="font-mono text-sm">{alumni.phone}</span>
+                    <Phone size={16} className="text-[var(--muted)]" />
+                    <span className="text-sm text-[var(--fg)]">{alumni.phone}</span>
                   </div>
                 )}
                 {alumni.address && (
                   <div className="flex items-start gap-3">
-                    <MapPin size={16} className="text-gray-600 mt-1" />
-                    <span className="font-mono text-sm">{alumni.address}</span>
+                    <MapPin size={16} className="text-[var(--muted)] mt-1" />
+                    <span className="text-sm text-[var(--fg)]">{alumni.address}</span>
                   </div>
                 )}
               </div>
             </Card>
 
             {/* Social Links */}
-            <Card variant="accent" className="transform -rotate-1">
-              <h2 className="font-black font-mono text-xl text-white uppercase mb-4">
-                SOCIAL LINKS
+            <Card variant="accent">
+              <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">
+                Social Links
               </h2>
               <div className="space-y-3">
                 {alumni.socialLinks.linkedin && (
@@ -219,10 +219,10 @@ const AlumniProfile: React.FC = () => {
                     href={alumni.socialLinks.linkedin} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-white hover:text-[#00FF80] transition-colors"
+                    className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
                   >
                     <Linkedin size={16} />
-                    <span className="font-mono text-sm">LinkedIn</span>
+                    <span className="text-sm">LinkedIn</span>
                   </a>
                 )}
                 {alumni.socialLinks.github && (
@@ -230,10 +230,10 @@ const AlumniProfile: React.FC = () => {
                     href={alumni.socialLinks.github} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-white hover:text-[#00FF80] transition-colors"
+                    className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
                   >
                     <Github size={16} />
-                    <span className="font-mono text-sm">GitHub</span>
+                    <span className="text-sm">GitHub</span>
                   </a>
                 )}
                 {alumni.socialLinks.instagram && (
@@ -241,10 +241,10 @@ const AlumniProfile: React.FC = () => {
                     href={alumni.socialLinks.instagram} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-white hover:text-[#00FF80] transition-colors"
+                    className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
                   >
                     <Instagram size={16} />
-                    <span className="font-mono text-sm">Instagram</span>
+                    <span className="text-sm">Instagram</span>
                   </a>
                 )}
                 {alumni.socialLinks.personal && (
@@ -252,25 +252,25 @@ const AlumniProfile: React.FC = () => {
                     href={alumni.socialLinks.personal} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-white hover:text-[#00FF80] transition-colors"
+                    className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
                   >
                     <ExternalLink size={16} />
-                    <span className="font-mono text-sm">Personal Website</span>
+                    <span className="text-sm">Personal Website</span>
                   </a>
                 )}
               </div>
             </Card>
 
             {/* Skills */}
-            <Card variant="primary" className="transform rotate-1">
-              <h2 className="font-black font-mono text-xl text-black uppercase mb-4">
-                SKILLS
+            <Card variant="primary">
+              <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">
+                Skills
               </h2>
               <div className="flex flex-wrap gap-2">
                 {alumni.skills.map((skill) => (
                   <span 
                     key={skill}
-                    className="bg-[#0080FF] text-white px-3 py-1 border-2 border-black font-mono text-sm font-bold uppercase"
+                    className="bg-neutral-100 dark:bg-neutral-800 text-[var(--fg)] px-2 py-1 border border-[var(--border)] text-xs rounded"
                   >
                     {skill}
                   </span>
@@ -282,35 +282,35 @@ const AlumniProfile: React.FC = () => {
           {/* Right Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Bio */}
-            <Card variant="primary" className="transform -rotate-1">
-              <h2 className="font-black font-mono text-2xl text-black uppercase mb-4">
-                ABOUT
+            <Card variant="primary">
+              <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">
+                About
               </h2>
-              <p className="font-mono text-gray-700 leading-relaxed">
+              <p className="text-[var(--muted)] leading-relaxed">
                 {alumni.bio}
               </p>
             </Card>
 
             {/* Education */}
-            <Card variant="secondary" className="transform rotate-1">
-              <h2 className="font-black font-mono text-2xl text-black uppercase mb-6 flex items-center gap-3">
+            <Card variant="secondary">
+              <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6 flex items-center gap-3">
                 <GraduationCap size={24} />
-                EDUCATION
+                Education
               </h2>
               <div className="space-y-4">
                 {alumni.education.map((edu) => (
-                  <div key={edu.id} className="bg-white border-4 border-black p-4 transform -rotate-1">
-                    <h3 className="font-bold font-mono text-black uppercase">
+                  <div key={edu.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                    <h3 className="font-semibold text-[var(--fg)] mb-1">
                       {edu.degree} in {edu.field}
                     </h3>
-                    <p className="font-mono text-sm text-gray-600">
+                    <p className="text-sm text-[var(--muted)]">
                       {edu.institution}
                     </p>
-                    <p className="font-mono text-sm text-[#0080FF]">
+                    <p className="text-sm text-[var(--muted)] mt-1">
                       {edu.startYear} - {edu.endYear || 'Present'}
                     </p>
                     {edu.grade && (
-                      <p className="font-mono text-sm text-[#FF0080] font-bold">
+                      <p className="text-sm text-[var(--muted)] mt-1">
                         Grade: {edu.grade}
                       </p>
                     )}
@@ -320,33 +320,33 @@ const AlumniProfile: React.FC = () => {
             </Card>
 
             {/* Work Experience */}
-            <Card variant="accent" className="transform -rotate-1">
-              <h2 className="font-black font-mono text-2xl text-white uppercase mb-6 flex items-center gap-3">
+            <Card variant="accent">
+              <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6 flex items-center gap-3">
                 <Briefcase size={24} />
-                WORK EXPERIENCE
+                Work Experience
               </h2>
               <div className="space-y-4">
                 {alumni.experience.map((exp) => (
-                  <div key={exp.id} className="bg-white border-4 border-black p-4 transform rotate-1">
+                  <div key={exp.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-bold font-mono text-black uppercase">
+                        <h3 className="font-semibold text-[var(--fg)]">
                           {exp.position}
                         </h3>
-                        <p className="font-mono text-sm text-gray-600">
+                        <p className="text-sm text-[var(--muted)]">
                           {exp.company}
                         </p>
                       </div>
                       {exp.current && (
-                        <span className="bg-[#00FF80] text-black px-2 py-1 border-2 border-black font-mono text-xs font-bold uppercase">
-                          CURRENT
+                        <span className="bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-1 text-xs rounded">
+                          Current
                         </span>
                       )}
                     </div>
-                    <p className="font-mono text-sm text-[#0080FF] mb-2">
+                    <p className="text-sm text-[var(--muted)] mb-2">
                       {exp.startDate} - {exp.endDate || 'Present'}
                     </p>
-                    <p className="font-mono text-sm text-gray-700">
+                    <p className="text-sm text-[var(--muted)]">
                       {exp.description}
                     </p>
                   </div>
@@ -355,30 +355,30 @@ const AlumniProfile: React.FC = () => {
             </Card>
 
             {/* Achievements */}
-            <Card variant="primary" className="transform rotate-1">
-              <h2 className="font-black font-mono text-2xl text-black uppercase mb-6 flex items-center gap-3">
+            <Card variant="primary">
+              <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6 flex items-center gap-3">
                 <Award size={24} />
-                ACHIEVEMENTS
+                Achievements
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {alumni.achievements.map((achievement) => (
-                  <div key={achievement.id} className="bg-[#00FF80] border-4 border-black p-4 transform -rotate-1">
+                  <div key={achievement.id} className="bg-neutral-100 dark:bg-neutral-800 border border-[var(--border)] rounded-md p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-[#FF0080] border-2 border-black flex items-center justify-center">
-                        <Award size={20} className="text-white" />
+                      <div className="w-10 h-10 bg-[var(--primary)] rounded-md flex items-center justify-center flex-shrink-0">
+                        <Award size={18} className="text-white" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold font-mono text-black uppercase text-sm mb-1">
+                        <h3 className="font-semibold text-sm text-[var(--fg)] mb-1">
                           {achievement.title}
                         </h3>
-                        <p className="font-mono text-xs text-gray-700 mb-2">
+                        <p className="text-xs text-[var(--muted)] mb-2">
                           {achievement.description}
                         </p>
                         <div className="flex items-center justify-between">
-                          <span className="bg-[#0080FF] text-white px-2 py-1 border-2 border-black font-mono text-xs font-bold uppercase">
+                          <span className="bg-neutral-200 dark:bg-neutral-700 text-[var(--fg)] px-2 py-1 text-xs rounded">
                             {achievement.category}
                           </span>
-                          <span className="font-mono text-xs text-gray-600">
+                          <span className="text-xs text-[var(--muted)]">
                             {achievement.date}
                           </span>
                         </div>
@@ -391,26 +391,26 @@ const AlumniProfile: React.FC = () => {
 
             {/* Recent Blogs */}
             {alumni.blogs.length > 0 && (
-              <Card variant="secondary" className="transform -rotate-1">
-                <h2 className="font-black font-mono text-2xl text-black uppercase mb-6">
-                  RECENT BLOGS
+              <Card variant="secondary">
+                <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6">
+                  Recent Blogs
                 </h2>
                 <div className="space-y-4">
                   {alumni.blogs.slice(0, 3).map((blog) => (
-                    <div key={blog.id} className="bg-white border-4 border-black p-4 transform rotate-1">
-                      <h3 className="font-bold font-mono text-black uppercase text-sm mb-2">
+                    <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                      <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">
                         {blog.title}
                       </h3>
-                      <p className="font-mono text-xs text-gray-600 mb-3">
+                      <p className="text-xs text-[var(--muted)] mb-3">
                         {blog.excerpt}
                       </p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <span className="font-mono text-xs text-[#FF0080] flex items-center gap-1">
+                          <span className="text-xs text-[var(--muted)] flex items-center gap-1">
                             <Heart size={12} />
                             {blog.likes}
                           </span>
-                          <span className="font-mono text-xs text-gray-500">
+                          <span className="text-xs text-[var(--muted)]">
                             {blog.publishedAt}
                           </span>
                         </div>
@@ -419,7 +419,7 @@ const AlumniProfile: React.FC = () => {
                           size="sm"
                           onClick={() => navigate(`/blog/${blog.id}`)}
                         >
-                          READ MORE
+                          Read More
                         </Button>
                       </div>
                     </div>
@@ -435,10 +435,10 @@ const AlumniProfile: React.FC = () => {
       {showConnectModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card variant="primary" className="max-w-md w-full">
-            <h2 className="font-black font-mono text-xl text-black uppercase mb-4">
-              LOGIN REQUIRED
+            <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">
+              Login Required
             </h2>
-            <p className="font-mono text-gray-700 mb-6">
+            <p className="text-[var(--muted)] mb-6">
               You need to be logged in to connect with alumni and access messaging features.
             </p>
             <div className="flex gap-4">
@@ -447,14 +447,14 @@ const AlumniProfile: React.FC = () => {
                 onClick={() => navigate('/login')}
                 className="flex-1"
               >
-                LOGIN
+                Login
               </Button>
               <Button 
                 variant="secondary" 
                 onClick={() => setShowConnectModal(false)}
                 className="flex-1"
               >
-                CANCEL
+                Cancel
               </Button>
             </div>
           </Card>
@@ -464,19 +464,19 @@ const AlumniProfile: React.FC = () => {
       {/* Message Modal */}
       {showMessageModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card variant="primary" className="max-w-lg w-full transform rotate-1">
-            <h2 className="font-black font-mono text-xl text-black uppercase mb-4 flex items-center gap-2">
+          <Card variant="primary" className="max-w-lg w-full">
+            <h2 className="text-xl font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
               <MessageCircle size={18} />
-              SEND MESSAGE
+              Send Message
             </h2>
-            <p className="font-mono text-sm text-gray-700 mb-3">
-              To: <span className="font-bold">{alumni.name}</span>
+            <p className="text-sm text-[var(--muted)] mb-3">
+              To: <span className="font-medium text-[var(--fg)]">{alumni.name}</span>
             </p>
             <textarea
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 border-4 border-black font-mono shadow-[4px_4px_0px_#000000] focus:outline-none focus:shadow-[6px_6px_0px_#000000] focus:translate-x-[-2px] focus:translate-y-[-2px] transition-all duration-200 bg-white mb-4"
+              className="w-full px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-colors duration-200 mb-4"
               placeholder="Write your message..."
             />
             <div className="flex gap-3">
@@ -513,14 +513,14 @@ const AlumniProfile: React.FC = () => {
                   }
                 }}
               >
-                {isSendingMessage ? 'SENDING...' : 'SEND'}
+                {isSendingMessage ? 'Sending...' : 'Send'}
               </Button>
               <Button
                 variant="secondary"
                 className="flex-1"
                 onClick={() => setShowMessageModal(false)}
               >
-                CANCEL
+                Cancel
               </Button>
             </div>
           </Card>

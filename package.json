@@ -11,7 +11,8 @@
     "create-superadmin": "node scripts/createSuperAdmin.js",
     "setup-superadmin": "node scripts/setSuperAdmin.js",
     "fix-login": "node scripts/fixSuperAdminLogin.js",
-    "create-profile": "node scripts/createMissingProfile.js"
+    "create-profile": "node scripts/createMissingProfile.js",
+    "reset-password": "node scripts/resetSuperAdminPassword.js"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",

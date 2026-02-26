@@ -71,10 +71,10 @@ const SuperAdminDashboard: React.FC = () => {
     : null;
 
   const stats = [
-    { label: 'Total Alumni', value: alumni.length, icon: GraduationCap, color: 'bg-[#FF0080]' },
-    { label: 'Active Colleges', value: colleges.length, icon: Building2, color: 'bg-[#00FF80]' },
-    { label: 'Monthly Growth', value: '12%', icon: TrendingUp, color: 'bg-[#0080FF]' },
-    { label: 'Total Users', value: '547', icon: Users, color: 'bg-[#FF4444]' },
+    { label: 'Total Alumni', value: alumni.length, icon: GraduationCap },
+    { label: 'Active Colleges', value: colleges.length, icon: Building2 },
+    { label: 'Monthly Growth', value: '12%', icon: TrendingUp },
+    { label: 'Total Users', value: '547', icon: Users },
   ];
 
   const handleAddCollege = async (collegeData: any) => {
@@ -279,12 +279,12 @@ const SuperAdminDashboard: React.FC = () => {
   // Show loading state while auth is loading
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl font-black font-mono text-[#0080FF] mb-4 animate-pulse">
-            LOADING...
+          <div className="text-4xl font-semibold text-[var(--fg)] mb-4 animate-pulse">
+            Loading...
           </div>
-          <p className="font-mono text-gray-600">Authenticating user...</p>
+          <p className="text-[var(--muted)]">Authenticating user...</p>
         </div>
       </div>
     );
@@ -293,12 +293,12 @@ const SuperAdminDashboard: React.FC = () => {
   // Show error if user is not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card variant="primary" className="text-center max-w-md">
-          <h2 className="text-2xl font-black font-mono text-black mb-4">NOT AUTHENTICATED</h2>
-          <p className="font-mono text-gray-600 mb-4">Please log in to access the dashboard.</p>
+          <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">Not Authenticated</h2>
+          <p className="text-[var(--muted)] mb-4">Please log in to access the dashboard.</p>
           <Button variant="primary" onClick={() => window.location.href = '/login'}>
-            GO TO LOGIN
+            Go to Login
           </Button>
         </Card>
       </div>
@@ -308,13 +308,13 @@ const SuperAdminDashboard: React.FC = () => {
   // Verify user is superadmin
   if (user.role !== 'superadmin') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card variant="primary" className="text-center max-w-md bg-red-50 border-red-500">
-          <h2 className="text-2xl font-black font-mono text-red-600 mb-4">ACCESS DENIED</h2>
-          <p className="font-mono text-gray-700 mb-2">Your role: <strong>{user.role}</strong></p>
-          <p className="font-mono text-gray-600 mb-4">You need to be a superadmin to access this page.</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card variant="primary" className="text-center max-w-md">
+          <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">Access Denied</h2>
+          <p className="text-[var(--muted)] mb-2">Your role: <strong>{user.role}</strong></p>
+          <p className="text-[var(--muted)] mb-4">You need to be a superadmin to access this page.</p>
           <Button variant="secondary" onClick={() => window.location.href = '/'}>
-            GO TO HOME
+            Go to Home
           </Button>
         </Card>
       </div>
@@ -323,90 +323,89 @@ const SuperAdminDashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-black font-mono uppercase text-black transform -skew-y-1 mb-2">
-              SUPER ADMIN
-              <span className="text-[#FF0080] block">DASHBOARD</span>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
+              Super Admin Dashboard
             </h1>
-            <p className="font-mono text-lg text-gray-600 uppercase">
+            <p className="text-base text-[var(--muted)]">
               Welcome back, {user?.name}
             </p>
           </div>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-3 flex-wrap">
             <Button 
               variant="secondary" 
               onClick={() => setShowEditProfile(true)}
               className="flex items-center gap-2"
             >
-              <Edit size={20} />
-              EDIT PROFILE
+              <Edit size={18} />
+              Edit Profile
             </Button>
             <Button 
               variant="primary" 
               onClick={() => handleCreateUserClick('superadmin')}
               className="flex items-center gap-2"
             >
-              <UserIcon size={20} />
-              CREATE SUPER ADMIN
+              <UserIcon size={18} />
+              Create Super Admin
             </Button>
             <Button 
               variant="success" 
               onClick={() => handleCreateUserClick('alumni')}
               className="flex items-center gap-2"
             >
-              <GraduationCap size={20} />
-              CREATE ALUMNI
+              <GraduationCap size={18} />
+              Create Alumni
             </Button>
             <Button variant="primary" className="flex items-center gap-2">
-            <Settings size={20} />
-            SETTINGS
-          </Button>
+              <Settings size={18} />
+              Settings
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Quick Actions - Prominent Buttons */}
       <div className="mb-8">
-        <Card variant="primary" className="transform rotate-0">
-          <h2 className="font-black font-mono text-2xl text-black uppercase mb-6 text-center">
-            QUICK ACTIONS
+        <Card variant="primary">
+          <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6 text-center">
+            Quick Actions
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Button 
               variant="primary" 
               size="lg" 
               onClick={handleAddCollegeClick}
-              className="flex flex-col items-center justify-center gap-3 py-8 transform hover:scale-105 transition-transform"
+              className="flex flex-col items-center justify-center gap-3 py-8"
             >
               <Building2 size={40} />
-              <span className="font-black font-mono text-xl uppercase">ADD NEW COLLEGE</span>
-              <span className="font-mono text-sm">Create college & assign sub-admin</span>
+              <span className="font-semibold text-lg">Add New College</span>
+              <span className="text-sm text-[var(--primary-fg)] opacity-90">Create college & assign sub-admin</span>
             </Button>
             
             <Button 
               variant="success" 
               size="lg" 
               onClick={() => handleCreateUserClick('alumni')}
-              className="flex flex-col items-center justify-center gap-3 py-8 transform hover:scale-105 transition-transform"
+              className="flex flex-col items-center justify-center gap-3 py-8"
             >
               <GraduationCap size={40} />
-              <span className="font-black font-mono text-xl uppercase">CREATE ALUMNI</span>
-              <span className="font-mono text-sm">Add new alumni to network</span>
+              <span className="font-semibold text-lg">Create Alumni</span>
+              <span className="text-sm text-white opacity-90">Add new alumni to network</span>
             </Button>
             
             <Button 
               variant="secondary" 
               size="lg" 
               onClick={() => handleCreateUserClick('subadmin')}
-              className="flex flex-col items-center justify-center gap-3 py-8 transform hover:scale-105 transition-transform"
+              className="flex flex-col items-center justify-center gap-3 py-8"
             >
               <UserIcon size={40} />
-              <span className="font-black font-mono text-xl uppercase">CREATE SUB-ADMIN</span>
-              <span className="font-mono text-sm">Add new sub-admin user</span>
+              <span className="font-semibold text-lg">Create Sub-Admin</span>
+              <span className="text-sm text-[var(--muted)]">Add new sub-admin user</span>
             </Button>
           </div>
         </Card>
@@ -414,19 +413,19 @@ const SuperAdminDashboard: React.FC = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
+        {stats.map((stat) => (
           <Card 
             key={stat.label} 
             variant="primary" 
-            className={`text-center transform ${index % 2 === 0 ? 'rotate-1' : '-rotate-1'}`}
+            className="text-center"
           >
-            <div className={`w-16 h-16 ${stat.color} border-4 border-black mx-auto mb-4 flex items-center justify-center transform -rotate-12`}>
-              <stat.icon size={32} className="text-white" />
+            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
+              <stat.icon size={28} className="text-[var(--fg)]" />
             </div>
-            <div className="font-black font-mono text-3xl text-black mb-2">
+            <div className="text-3xl font-semibold text-[var(--fg)] mb-1">
               {stat.value}
             </div>
-            <div className="font-bold font-mono text-sm text-gray-600 uppercase">
+            <div className="text-sm text-[var(--muted)]">
               {stat.label}
             </div>
           </Card>
@@ -434,13 +433,13 @@ const SuperAdminDashboard: React.FC = () => {
       </div>
 
       {/* Sub-Admin Creation Section - Prominent */}
-      <Card variant="secondary" className="transform rotate-0 mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <Card variant="secondary" className="mb-8">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
-            <h2 className="font-black font-mono text-3xl text-black uppercase mb-2">
-              SUB-ADMIN MANAGEMENT
+            <h2 className="text-2xl font-semibold text-[var(--fg)] mb-2">
+              Sub-Admin Management
             </h2>
-            <p className="font-mono text-sm text-gray-600">
+            <p className="text-sm text-[var(--muted)]">
               Create and manage sub-admins for your colleges
             </p>
           </div>
@@ -450,34 +449,34 @@ const SuperAdminDashboard: React.FC = () => {
             onClick={() => handleCreateUserClick('subadmin')}
             className="flex items-center gap-2"
           >
-            <Plus size={20} />
-            CREATE NEW SUB-ADMIN
+            <Plus size={18} />
+            Create New Sub-Admin
           </Button>
         </div>
         
-        <div className="bg-[#00FF80] border-4 border-black p-6 transform -rotate-1">
+        <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-4xl font-black font-mono text-black mb-2">
+              <div className="text-4xl font-semibold text-[var(--fg)] mb-2">
                 {colleges.filter(c => c.adminName).length}
               </div>
-              <div className="font-bold font-mono text-sm text-black uppercase">
+              <div className="text-sm text-[var(--muted)]">
                 Active Sub-Admins
               </div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-black font-mono text-black mb-2">
+              <div className="text-4xl font-semibold text-[var(--fg)] mb-2">
                 {colleges.length}
               </div>
-              <div className="font-bold font-mono text-sm text-black uppercase">
+              <div className="text-sm text-[var(--muted)]">
                 Total Colleges
               </div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-black font-mono text-black mb-2">
+              <div className="text-4xl font-semibold text-[var(--fg)] mb-2">
                 {colleges.filter(c => !c.adminName).length}
               </div>
-              <div className="font-bold font-mono text-sm text-black uppercase">
+              <div className="text-sm text-[var(--muted)]">
                 Pending Assignments
               </div>
             </div>
@@ -488,34 +487,34 @@ const SuperAdminDashboard: React.FC = () => {
       {/* Management Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* University Management */}
-        <Card variant="secondary" className="transform rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-black font-mono text-2xl text-black uppercase">
-              UNIVERSITY MANAGEMENT
+        <Card variant="secondary">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-xl font-semibold text-[var(--fg)]">
+              University Management
             </h2>
             <Button variant="primary" size="sm" onClick={handleAddCollegeClick}>
               <Plus size={16} />
-              ADD COLLEGE
+              Add College
             </Button>
           </div>
           
           <div className="space-y-4">
             {loading ? (
-              <p className="font-mono text-center py-4">Loading colleges...</p>
+              <p className="text-center py-4 text-[var(--muted)]">Loading colleges...</p>
             ) : colleges.length === 0 ? (
-              <p className="font-mono text-center py-4 text-gray-500">No colleges found. Add your first college!</p>
+              <p className="text-center py-4 text-[var(--muted)]">No colleges found. Add your first college!</p>
             ) : (
               colleges.map((college) => (
-              <div key={college.id} className="bg-white border-4 border-black p-4 transform -rotate-1">
-              <div className="flex items-center justify-between">
+              <div key={college.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+              <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <h3 className="font-bold font-mono text-black uppercase">
+                  <h3 className="font-semibold text-[var(--fg)] mb-1">
                     {college.name}
                   </h3>
-                  <p className="font-mono text-sm text-gray-600">
+                  <p className="text-sm text-[var(--muted)]">
                     {college.departments.length} Departments
                   </p>
-                  <div className="mt-3 space-y-1 font-mono text-xs text-gray-700">
+                  <div className="mt-3 space-y-1 text-xs text-[var(--muted)]">
                     <div className="flex items-center gap-2">
                       <UserIcon size={14} />
                       <span>{college.adminName || 'Pending assignment'}</span>
@@ -533,7 +532,7 @@ const SuperAdminDashboard: React.FC = () => {
                   </div>
                 </div>
                 <Button variant="success" size="sm" onClick={() => handleManageCollege(college.id)}>
-                  MANAGE SUB-ADMIN
+                  Manage Sub-Admin
                 </Button>
               </div>
             </div>
@@ -543,10 +542,10 @@ const SuperAdminDashboard: React.FC = () => {
         </Card>
 
         {/* Sub-Admin Management */}
-        <Card variant="primary" className="transform -rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-black font-mono text-2xl text-black uppercase">
-              SUB-ADMIN MANAGEMENT
+        <Card variant="primary">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-xl font-semibold text-[var(--fg)]">
+              Sub-Admin Management
             </h2>
             <Button 
               variant="success" 
@@ -554,56 +553,56 @@ const SuperAdminDashboard: React.FC = () => {
               onClick={() => handleCreateUserClick('subadmin')}
             >
               <Plus size={16} />
-              CREATE SUB-ADMIN
+              Create Sub-Admin
             </Button>
           </div>
           
           <div className="space-y-4">
             {loading ? (
-              <p className="font-mono text-center py-4">Loading sub-admins...</p>
+              <p className="text-center py-4 text-[var(--muted)]">Loading sub-admins...</p>
             ) : colleges.length === 0 ? (
-              <p className="font-mono text-center py-4 text-gray-500">No colleges found. Create a college first!</p>
+              <p className="text-center py-4 text-[var(--muted)]">No colleges found. Create a college first!</p>
             ) : (
               colleges.map((college) => (
-                <div key={college.id} className="bg-white border-4 border-black p-4 transform rotate-1">
-                  <div className="flex items-center justify-between">
+                <div key={college.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex-1">
-                      <h3 className="font-bold font-mono text-black uppercase">
+                      <h3 className="font-semibold text-[var(--fg)] mb-1">
                         {college.name}
                       </h3>
-                      <p className="font-mono text-sm text-gray-600">
+                      <p className="text-sm text-[var(--muted)]">
                         {college.departments?.length || 0} Departments
                       </p>
-                      <div className="mt-3 space-y-1 font-mono text-xs">
+                      <div className="mt-3 space-y-1 text-xs">
                         {college.adminName ? (
                           <>
-                            <div className="flex items-center gap-2 text-gray-700">
+                            <div className="flex items-center gap-2 text-[var(--muted)]">
                               <UserIcon size={14} />
-                              <span className="font-bold">Sub-Admin:</span> {college.adminName}
+                              <span className="font-medium">Sub-Admin:</span> {college.adminName}
                             </div>
-                            <div className="flex items-center gap-2 text-gray-600">
+                            <div className="flex items-center gap-2 text-[var(--muted)]">
                               <Mail size={14} />
                               <span>{college.adminEmail}</span>
                             </div>
                             {college.adminContactNumber && (
-                              <div className="flex items-center gap-2 text-gray-600">
+                              <div className="flex items-center gap-2 text-[var(--muted)]">
                                 <Phone size={14} />
                                 <span>{college.adminContactNumber}</span>
                               </div>
                             )}
                           </>
                         ) : (
-                          <p className="text-[#FF0080] font-bold">⚠️ No sub-admin assigned</p>
+                          <p className="text-amber-600 dark:text-amber-400 font-medium">⚠️ No sub-admin assigned</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex gap-2">
                       <Button 
                         variant="primary" 
                         size="sm" 
                         onClick={() => handleManageCollege(college.id)}
                       >
-                        {college.adminName ? 'UPDATE' : 'ASSIGN'}
+                        {college.adminName ? 'Update' : 'Assign'}
                       </Button>
                     </div>
                   </div>
@@ -615,45 +614,45 @@ const SuperAdminDashboard: React.FC = () => {
       </div>
 
       {/* Recent Activities */}
-      <Card variant="primary" className="transform rotate-0">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-black font-mono text-2xl text-black uppercase">
-            RECENT ACTIVITIES
+      <Card variant="primary">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <h2 className="text-xl font-semibold text-[var(--fg)]">
+            Recent Activities
           </h2>
-          <Button variant="secondary" size="sm">
-            <span onClick={handleAddCollegeClick}>ADD COLLEGE</span>
+          <Button variant="secondary" size="sm" onClick={handleAddCollegeClick}>
+            Add College
           </Button>
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center gap-4 p-4 bg-[#00FF80] border-2 border-black">
-            <div className="w-12 h-12 bg-[#FF0080] border-2 border-black flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)]">
+            <div className="w-12 h-12 rounded-md bg-[var(--primary)] flex items-center justify-center">
               <Users size={20} className="text-white" />
             </div>
             <div className="flex-1">
-              <p className="font-bold font-mono text-black">
+              <p className="font-semibold text-[var(--fg)]">
                 New alumni registration
               </p>
-              <p className="font-mono text-sm text-gray-700">
+              <p className="text-sm text-[var(--muted)]">
                 Sarah Davis joined from College of Business
               </p>
             </div>
-            <span className="font-mono text-sm text-gray-600">2 min ago</span>
+            <span className="text-sm text-[var(--muted)]">2 min ago</span>
           </div>
           
-          <div className="flex items-center gap-4 p-4 bg-[#0080FF] border-2 border-black">
-            <div className="w-12 h-12 bg-white border-2 border-black flex items-center justify-center">
-              <Building2 size={20} className="text-black" />
+          <div className="flex items-center gap-4 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)]">
+            <div className="w-12 h-12 rounded-md bg-[var(--primary)] flex items-center justify-center">
+              <Building2 size={20} className="text-white" />
             </div>
             <div className="flex-1">
-              <p className="font-bold font-mono text-white">
+              <p className="font-semibold text-[var(--fg)]">
                 College admin updated
               </p>
-              <p className="font-mono text-sm text-gray-300">
+              <p className="text-sm text-[var(--muted)]">
                 New sub-admin assigned to Engineering College
               </p>
             </div>
-            <span className="font-mono text-sm text-gray-300">1 hour ago</span>
+            <span className="text-sm text-[var(--muted)]">1 hour ago</span>
           </div>
         </div>
       </Card>
@@ -700,25 +699,25 @@ const SuperAdminDashboard: React.FC = () => {
     {/* Credentials Display Modal */}
     {createdCredentials && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <Card variant="primary" className="max-w-md w-full transform rotate-1">
+        <Card variant="primary" className="max-w-md w-full">
           <div className="text-center">
-            <h2 className="text-2xl font-black font-mono uppercase text-black mb-4">
-              ✅ USER CREATED SUCCESSFULLY!
+            <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">
+              ✅ User Created Successfully!
             </h2>
-            <div className="bg-[#00FF80] border-4 border-black p-6 mb-4 transform -rotate-1">
-              <p className="font-bold font-mono text-black uppercase mb-4">DEMO LOGIN CREDENTIALS</p>
+            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-6 mb-4">
+              <p className="font-semibold text-[var(--fg)] mb-4">Demo Login Credentials</p>
               <div className="space-y-3 text-left">
                 <div>
-                  <p className="font-mono text-sm text-gray-600 uppercase">Email:</p>
-                  <p className="font-black font-mono text-lg text-black break-all">{createdCredentials.email}</p>
+                  <p className="text-sm text-[var(--muted)] mb-1">Email:</p>
+                  <p className="font-semibold text-[var(--fg)] break-all">{createdCredentials.email}</p>
                 </div>
                 <div>
-                  <p className="font-mono text-sm text-gray-600 uppercase">Password:</p>
-                  <p className="font-black font-mono text-lg text-black">{createdCredentials.password}</p>
+                  <p className="text-sm text-[var(--muted)] mb-1">Password:</p>
+                  <p className="font-semibold text-[var(--fg)]">{createdCredentials.password}</p>
                 </div>
               </div>
             </div>
-            <p className="font-mono text-sm text-gray-600 mb-4">
+            <p className="text-sm text-[var(--muted)] mb-4">
               Share these credentials with the user. They can login at /login
             </p>
             <Button 
@@ -727,16 +726,16 @@ const SuperAdminDashboard: React.FC = () => {
                 navigator.clipboard.writeText(`Email: ${createdCredentials.email}\nPassword: ${createdCredentials.password}`);
                 alert('Credentials copied to clipboard!');
               }}
-              className="mb-2"
+              className="mb-2 w-full"
             >
-              COPY CREDENTIALS
+              Copy Credentials
             </Button>
             <Button 
               variant="secondary" 
               onClick={() => setCreatedCredentials(null)}
               className="w-full"
             >
-              CLOSE
+              Close
             </Button>
           </div>
         </Card>

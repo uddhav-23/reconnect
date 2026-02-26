@@ -45,10 +45,10 @@ const SubAdminDashboard: React.FC = () => {
   };
 
   const stats = [
-    { label: 'Alumni Managed', value: collegeAlumni.length, icon: Users, color: 'bg-[#FF0080]' },
-    { label: 'Active Blogs', value: collegeBlogs.length, icon: BookOpen, color: 'bg-[#00FF80]' },
-    { label: 'Total Achievements', value: '23', icon: Award, color: 'bg-[#0080FF]' },
-    { label: 'Monthly Growth', value: '8%', icon: TrendingUp, color: 'bg-[#FF4444]' },
+    { label: 'Alumni Managed', value: collegeAlumni.length, icon: Users },
+    { label: 'Active Blogs', value: collegeBlogs.length, icon: BookOpen },
+    { label: 'Total Achievements', value: '23', icon: Award },
+    { label: 'Monthly Growth', value: '8%', icon: TrendingUp },
   ];
 
   const handleAddAlumni = async (alumniData: any) => {
@@ -152,58 +152,54 @@ const SubAdminDashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-black font-mono uppercase text-black transform skew-y-1 mb-2">
-              COLLEGE ADMIN
-              <span className="text-[#00FF80] block">DASHBOARD</span>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
+              College Admin Dashboard
             </h1>
-            <p className="font-mono text-lg text-gray-600 uppercase">
+            <p className="text-base text-[var(--muted)]">
               Welcome back, {user?.name}
             </p>
-            <p className="font-mono text-sm text-[#FF0080] font-bold">
-              COLLEGE OF ENGINEERING
-            </p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-3 flex-wrap">
             <Button 
               variant="secondary" 
               onClick={() => setShowEditProfile(true)}
               className="flex items-center gap-2"
             >
-              <Edit size={20} />
-              EDIT PROFILE
+              <Edit size={18} />
+              Edit Profile
             </Button>
             <Button 
               variant="primary" 
               onClick={() => setShowAddAlumni(true)}
               className="flex items-center gap-2"
             >
-            <UserPlus size={20} />
-            ADD ALUMNI
-          </Button>
+              <UserPlus size={18} />
+              Add Alumni
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
+        {stats.map((stat) => (
           <Card 
             key={stat.label} 
             variant="primary" 
-            className={`text-center transform ${index % 2 === 0 ? '-rotate-1' : 'rotate-1'}`}
+            className="text-center"
           >
-            <div className={`w-16 h-16 ${stat.color} border-4 border-black mx-auto mb-4 flex items-center justify-center transform rotate-12`}>
-              <stat.icon size={32} className="text-white" />
+            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
+              <stat.icon size={28} className="text-[var(--fg)]" />
             </div>
-            <div className="font-black font-mono text-3xl text-black mb-2">
+            <div className="text-3xl font-semibold text-[var(--fg)] mb-1">
               {stat.value}
             </div>
-            <div className="font-bold font-mono text-sm text-gray-600 uppercase">
+            <div className="text-sm text-[var(--muted)]">
               {stat.label}
             </div>
           </Card>
@@ -213,43 +209,43 @@ const SubAdminDashboard: React.FC = () => {
       {/* Management Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Alumni Management */}
-        <Card variant="secondary" className="transform -rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-black font-mono text-2xl text-black uppercase">
-              ALUMNI MANAGEMENT
+        <Card variant="secondary">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-xl font-semibold text-[var(--fg)]">
+              Alumni Management
             </h2>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" onClick={() => setShowAddAlumni(true)}>
               <Plus size={16} />
-              <span onClick={() => setShowAddAlumni(true)}>ADD NEW</span>
+              Add New
             </Button>
           </div>
           
           <div className="space-y-4">
             {loading ? (
-              <p className="font-mono text-center py-4">Loading alumni...</p>
+              <p className="text-center py-4 text-[var(--muted)]">Loading alumni...</p>
             ) : collegeAlumni.length === 0 ? (
-              <p className="font-mono text-center py-4 text-gray-500">No alumni found. Add your first alumni!</p>
+              <p className="text-center py-4 text-[var(--muted)]">No alumni found. Add your first alumni!</p>
             ) : (
-              collegeAlumni.slice(0, 3).map((alumni, index) => (
-              <div key={alumni.id} className="bg-white border-4 border-black p-4 transform rotate-1">
-                <div className="flex items-center justify-between">
+              collegeAlumni.slice(0, 3).map((alumni) => (
+              <div key={alumni.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <div>
-                    <h3 className="font-bold font-mono text-black uppercase">
+                    <h3 className="font-semibold text-[var(--fg)] mb-1">
                       {alumni.name}
                     </h3>
-                    <p className="font-mono text-sm text-gray-600">
+                    <p className="text-sm text-[var(--muted)]">
                       {alumni.currentPosition} at {alumni.currentCompany}
                     </p>
-                    <p className="font-mono text-xs text-[#0080FF]">
+                    <p className="text-xs text-[var(--muted)]">
                       Class of {alumni.graduationYear}
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="primary" size="sm" onClick={() => handleEditAlumni(alumni)}>
-                      EDIT
+                      Edit
                     </Button>
                     <Button variant="danger" size="sm" onClick={() => handleDeleteAlumni(alumni.id, alumni.name)}>
-                      DELETE
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -260,42 +256,42 @@ const SubAdminDashboard: React.FC = () => {
         </Card>
 
         {/* Blog Management */}
-        <Card variant="accent" className="transform rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-black font-mono text-2xl text-white uppercase">
-              BLOG MANAGEMENT
+        <Card variant="accent">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-xl font-semibold text-[var(--fg)]">
+              Blog Management
             </h2>
             <Button variant="secondary" size="sm">
-              VIEW ALL
+              View All
             </Button>
           </div>
           
           <div className="space-y-4">
             {loading ? (
-              <p className="font-mono text-center py-4">Loading blogs...</p>
+              <p className="text-center py-4 text-[var(--muted)]">Loading blogs...</p>
             ) : collegeBlogs.length === 0 ? (
-              <p className="font-mono text-center py-4 text-gray-500">No blogs found.</p>
+              <p className="text-center py-4 text-[var(--muted)]">No blogs found.</p>
             ) : (
-              collegeBlogs.map((blog, index) => (
-              <div key={blog.id} className="bg-white border-4 border-black p-4 transform -rotate-1">
-                <div className="flex items-center justify-between">
+              collegeBlogs.map((blog) => (
+              <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                   <div>
-                    <h3 className="font-bold font-mono text-black uppercase text-sm">
+                    <h3 className="font-semibold text-sm text-[var(--fg)] mb-1">
                       {blog.title}
                     </h3>
-                    <p className="font-mono text-sm text-gray-600">
+                    <p className="text-sm text-[var(--muted)]">
                       By {blog.author.name}
                     </p>
-                    <p className="font-mono text-xs text-[#FF0080]">
+                    <p className="text-xs text-[var(--muted)]">
                       {blog.likes} likes • {blog.tags.length} tags
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="primary" size="sm">
-                      EDIT
+                      Edit
                     </Button>
                     <Button variant="danger" size="sm" onClick={() => handleDeleteBlog(blog.id, blog.title)}>
-                      DELETE
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -307,27 +303,27 @@ const SubAdminDashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card variant="primary" className="transform rotate-0">
+      <Card variant="primary">
         <div className="mb-6">
-          <h2 className="font-black font-mono text-2xl text-black uppercase">
-            QUICK ACTIONS
+          <h2 className="text-xl font-semibold text-[var(--fg)]">
+            Quick Actions
           </h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button variant="primary" className="flex items-center justify-center gap-2 py-6">
+          <Button variant="primary" className="flex items-center justify-center gap-2 py-6" onClick={() => setShowAddAlumni(true)}>
             <UserPlus size={24} />
-            <span onClick={() => setShowAddAlumni(true)}>ADD NEW ALUMNI</span>
+            <span>Add New Alumni</span>
           </Button>
           
           <Button variant="secondary" className="flex items-center justify-center gap-2 py-6">
             <BookOpen size={24} />
-            <span>MANAGE BLOGS</span>
+            <span>Manage Blogs</span>
           </Button>
           
           <Button variant="success" className="flex items-center justify-center gap-2 py-6">
             <Award size={24} />
-            <span>VIEW ACHIEVEMENTS</span>
+            <span>View Achievements</span>
           </Button>
         </div>
       </Card>

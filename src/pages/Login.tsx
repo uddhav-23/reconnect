@@ -38,37 +38,33 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0080FF] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
-      <div className="absolute top-20 left-20 w-32 h-32 bg-[#FF0080] border-4 border-black transform rotate-45"></div>
-      <div className="absolute bottom-20 right-20 w-24 h-24 bg-[#00FF80] border-4 border-black transform -rotate-12"></div>
-      <div className="absolute top-1/2 left-10 w-16 h-16 bg-white border-4 border-black"></div>
-      
-      <div className="w-full max-w-md relative z-10">
-        <Card variant="primary" className="transform -rotate-1">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
+      <div className="w-full max-w-md">
+        <Card variant="primary">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-[#FF0080] border-4 border-black mx-auto mb-4 flex items-center justify-center transform rotate-12">
-              <LogIn size={32} className="text-white" />
+            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
+              <LogIn size={28} className="text-[var(--fg)]" />
             </div>
-            <h1 className="text-3xl font-black font-mono uppercase text-black">
-              LOGIN TO
-              <br />
-              <span className="text-[#FF0080]">RECONNECT</span>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
+              Login to Reconnect
             </h1>
+            <p className="text-sm text-[var(--muted)]">
+              Welcome back! Please sign in to continue.
+            </p>
           </div>
           
           {error && (
-            <div className="bg-red-500 border-4 border-black p-4 mb-6 text-white font-bold font-mono uppercase text-center">
+            <div className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-md p-4 mb-6 text-red-800 dark:text-red-200 text-sm text-center">
               {error}
             </div>
           )}
           
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)]" size={20} />
               <Input
                 type="email"
-                label="EMAIL"
+                label="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -78,10 +74,10 @@ const Login: React.FC = () => {
             </div>
             
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={20} />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--muted)]" size={20} />
               <Input
                 type="password"
-                label="PASSWORD"
+                label="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -94,44 +90,46 @@ const Login: React.FC = () => {
               type="submit" 
               variant="primary" 
               size="lg" 
-              className="w-full flex items-center justify-center gap-3"
+              className="w-full flex items-center justify-center gap-2"
             >
-              <LogIn size={20} />
-              LOGIN
+              <LogIn size={18} />
+              Login
             </Button>
           </form>
           
-          <div className="mt-8 pt-6 border-t-4 border-black text-center">
-            <p className="font-mono font-bold text-black mb-4">
+          <div className="mt-8 pt-6 border-t border-[var(--border)] text-center">
+            <p className="text-sm text-[var(--muted)] mb-4">
               Don't have an account?
             </p>
-            <Link 
-              to="/signup" 
-              className="inline-block bg-[#FF0080] text-white border-4 border-black px-6 py-3 font-bold font-mono uppercase hover:bg-[#CC0066] transition-colors transform hover:scale-105 mb-6"
-            >
-              SIGN UP HERE
+            <Link to="/signup">
+              <Button variant="secondary" className="w-full">
+                Sign Up Here
+              </Button>
             </Link>
-            <p className="font-mono font-bold text-black uppercase mb-4 mt-6">
-              Demo Credentials:
-            </p>
-            <div className="space-y-2 text-sm font-mono">
-              <div className="bg-[#00FF80] border-2 border-black p-2">
-                <strong>Super Admin:</strong> superadmin@university.edu
-              </div>
-              <div className="bg-[#FF0080] text-white border-2 border-black p-2">
-                <strong>Sub Admin:</strong> admin@college.edu
-              </div>
-              <div className="bg-[#0080FF] text-white border-2 border-black p-2">
-                <strong>Alumni:</strong> alumni@example.com
-              </div>
-              <div className="bg-[#FF4444] text-white border-2 border-black p-2">
-                <strong>Student:</strong> student@example.com
-              </div>
-              <div className="bg-gray-600 text-white border-2 border-black p-2">
-                <strong>User:</strong> user@example.com
-              </div>
-              <div className="mt-2 text-xs text-gray-600">
-                Password: any text works
+            
+            <div className="mt-8 pt-6 border-t border-[var(--border)]">
+              <p className="text-sm font-medium text-[var(--fg)] mb-4">
+                Demo Credentials:
+              </p>
+              <div className="space-y-2 text-xs">
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                  <strong className="text-[var(--fg)]">Super Admin:</strong> <span className="text-[var(--muted)]">superadmin@university.edu</span>
+                </div>
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                  <strong className="text-[var(--fg)]">Sub Admin:</strong> <span className="text-[var(--muted)]">admin@college.edu</span>
+                </div>
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                  <strong className="text-[var(--fg)]">Alumni:</strong> <span className="text-[var(--muted)]">alumni@example.com</span>
+                </div>
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                  <strong className="text-[var(--fg)]">Student:</strong> <span className="text-[var(--muted)]">student@example.com</span>
+                </div>
+                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                  <strong className="text-[var(--fg)]">User:</strong> <span className="text-[var(--muted)]">user@example.com</span>
+                </div>
+                <div className="mt-3 text-xs text-[var(--muted)]">
+                  Password: any text works
+                </div>
               </div>
             </div>
           </div>
@@ -140,9 +138,9 @@ const Login: React.FC = () => {
         <div className="text-center mt-6">
           <Link 
             to="/" 
-            className="text-white font-bold font-mono uppercase hover:text-[#00FF80] transition-colors"
+            className="text-sm text-[var(--muted)] hover:text-[var(--fg)] transition-colors inline-flex items-center gap-2"
           >
-            ← BACK TO HOME
+            ← Back to Home
           </Link>
         </div>
       </div>

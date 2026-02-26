@@ -153,6 +153,9 @@ export interface Message {
   receiverId: string;
   content: string;
   createdAt: string;
+  read: boolean;
+  readAt?: string;
+  deletedBy?: string[]; // Array of user IDs who deleted this message
 }
 
 export interface AuthContextType {

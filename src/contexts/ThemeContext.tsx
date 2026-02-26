@@ -1,4 +1,5 @@
 import React from 'react';
+import ThemeTransition from '../components/common/ThemeTransition';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -25,6 +26,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const saved = typeof window !== 'undefined' ? (localStorage.getItem(STORAGE_KEY) as Theme | null) : null;
     return saved ?? 'system';
   });
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
 
   const resolvedTheme = theme === 'system' ? getSystemPreference() : theme;
 
@@ -55,7 +57,26 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme, applyThemeClass]);
 
   const setTheme = (next: Theme) => setThemeState(next);
-  const toggleTheme = () => setThemeState(prev => (prev === 'dark' ? 'light' : 'dark'));
+  
+  const toggleTheme = () => {
+    setIsTransitioning(true);
+    // Small delay to show animation before theme change
+    setTimeout(() => {
+      setThemeState(prev => {
+        if (prev === 'system') {
+          // If system, toggle based on current system preference
+          const current = getSystemPreference();
+          return current === 'dark' ? 'light' : 'dark';
+        }
+        // Otherwise, toggle between light and dark
+        return prev === 'dark' ? 'light' : 'dark';
+      });
+    }, 100);
+  };
+
+  const handleTransitionComplete = () => {
+    setIsTransitioning(false);
+  };
 
   const value: ThemeContextValue = {
     theme,
@@ -64,7 +85,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     toggleTheme,
   };
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+      <ThemeTransition isActive={isTransitioning} onComplete={handleTransitionComplete} />
+    </ThemeContext.Provider>
+  );
 };
 
 export function useTheme(): ThemeContextValue {

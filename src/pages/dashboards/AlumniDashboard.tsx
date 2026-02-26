@@ -148,10 +148,10 @@ const AlumniDashboard: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card variant="primary" className="text-center max-w-md">
-          <h2 className="text-2xl font-black font-mono text-black mb-4">NOT AUTHENTICATED</h2>
-          <p className="font-mono text-gray-600 mb-4">Please log in as an alumni to access this dashboard.</p>
+          <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">Not Authenticated</h2>
+          <p className="text-[var(--muted)] mb-4">Please log in as an alumni to access this dashboard.</p>
         </Card>
       </div>
     );
@@ -159,18 +159,18 @@ const AlumniDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="font-mono text-gray-600">Loading your dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-[var(--muted)]">Loading your dashboard...</p>
       </div>
     );
   }
 
   if (!currentAlumni) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card variant="primary" className="text-center max-w-md">
-          <h2 className="text-2xl font-black font-mono text-black mb-4">PROFILE NOT FOUND</h2>
-          <p className="font-mono text-gray-600 mb-4">
+          <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">Profile Not Found</h2>
+          <p className="text-[var(--muted)] mb-4">
             Your alumni profile has not been set up yet. Please contact your admin to create your alumni profile.
           </p>
         </Card>
@@ -179,27 +179,26 @@ const AlumniDashboard: React.FC = () => {
   }
 
   const stats = [
-    { label: 'Profile Views', value: '124', icon: Eye, color: 'bg-[#FF0080]' },
-    { label: 'Published Blogs', value: userBlogs.length, icon: BookOpen, color: 'bg-[#00FF80]' },
-    { label: 'Achievements', value: userAchievements.length, icon: Award, color: 'bg-[#0080FF]' },
-    { label: 'Network Connections', value: (currentAlumni.connections || []).length, icon: UserCheck, color: 'bg-[#FF4444]' },
+    { label: 'Profile Views', value: '124', icon: Eye },
+    { label: 'Published Blogs', value: userBlogs.length, icon: BookOpen },
+    { label: 'Achievements', value: userAchievements.length, icon: Award },
+    { label: 'Network Connections', value: (currentAlumni.connections || []).length, icon: UserCheck },
   ];
 
   return (
     <>
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-4xl font-black font-mono uppercase text-black transform -skew-y-1 mb-2">
-              ALUMNI
-              <span className="text-[#0080FF] block">DASHBOARD</span>
+            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
+              Alumni Dashboard
             </h1>
-            <p className="font-mono text-lg text-gray-600 uppercase">
+            <p className="text-base text-[var(--muted)]">
               Welcome back, {currentAlumni.name}
             </p>
-            <p className="font-mono text-sm text-[#FF0080] font-bold">
+            <p className="text-sm text-[var(--muted)] mt-1">
               {currentAlumni.currentPosition} at {currentAlumni.currentCompany}
             </p>
           </div>
@@ -208,27 +207,27 @@ const AlumniDashboard: React.FC = () => {
             onClick={() => setShowEditProfile(true)}
             className="flex items-center gap-2"
           >
-            <Settings size={20} />
-            EDIT PROFILE
+            <Settings size={18} />
+            Edit Profile
           </Button>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat, index) => (
+        {stats.map((stat) => (
           <Card 
             key={stat.label} 
             variant="primary" 
-            className={`text-center transform ${index % 2 === 0 ? 'rotate-1' : '-rotate-1'}`}
+            className="text-center"
           >
-            <div className={`w-16 h-16 ${stat.color} border-4 border-black mx-auto mb-4 flex items-center justify-center transform -rotate-12`}>
-              <stat.icon size={32} className="text-white" />
+            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
+              <stat.icon size={28} className="text-[var(--fg)]" />
             </div>
-            <div className="font-black font-mono text-3xl text-black mb-2">
+            <div className="text-3xl font-semibold text-[var(--fg)] mb-1">
               {stat.value}
             </div>
-            <div className="font-bold font-mono text-sm text-gray-600 uppercase">
+            <div className="text-sm text-[var(--muted)]">
               {stat.label}
             </div>
           </Card>
@@ -238,54 +237,54 @@ const AlumniDashboard: React.FC = () => {
       {/* Profile & Content Management */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Profile Summary */}
-        <Card variant="secondary" className="transform rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-black font-mono text-2xl text-black uppercase">
-              PROFILE SUMMARY
+        <Card variant="secondary">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-xl font-semibold text-[var(--fg)]">
+              Profile Summary
             </h2>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" onClick={() => setShowEditProfile(true)}>
               <Edit size={16} />
-              EDIT
+              Edit
             </Button>
           </div>
           
           <div className="space-y-4">
-            <div className="bg-white border-4 border-black p-4 transform -rotate-1">
+            <div className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 bg-[#FF0080] border-4 border-black flex items-center justify-center">
-                  <span className="text-white font-black font-mono text-xl">
+                <div className="w-20 h-20 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shadow-subtle">
+                  <span className="text-[var(--fg)] font-semibold text-xl">
                     {currentAlumni.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-bold font-mono text-black uppercase">
+                  <h3 className="font-semibold text-[var(--fg)] mb-1">
                     {currentAlumni.name}
                   </h3>
-                  <p className="font-mono text-sm text-gray-600">
+                  <p className="text-sm text-[var(--muted)]">
                     {currentAlumni.degree}
                   </p>
-                  <p className="font-mono text-sm text-[#0080FF]">
+                  <p className="text-sm text-[var(--muted)] mt-1">
                     Class of {currentAlumni.graduationYear}
                   </p>
                 </div>
               </div>
             </div>
             
-            <div className="bg-[#00FF80] border-2 border-black p-4">
-              <p className="font-mono text-sm text-black">
-                <strong>Bio:</strong> {currentAlumni.bio}
+            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-4">
+              <p className="text-sm text-[var(--fg)]">
+                <strong className="font-medium">Bio:</strong> {currentAlumni.bio}
               </p>
             </div>
             
-            <div className="bg-[#0080FF] border-2 border-black p-4">
-              <p className="font-mono text-sm text-white mb-2">
-                <strong>Skills:</strong>
+            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-4">
+              <p className="text-sm text-[var(--fg)] mb-2 font-medium">
+                Skills:
               </p>
               <div className="flex flex-wrap gap-2">
                 {currentAlumni.skills.map((skill) => (
                   <span 
                     key={skill}
-                    className="bg-white text-black px-2 py-1 border-2 border-black font-mono text-xs font-bold"
+                    className="bg-[var(--card)] text-[var(--fg)] px-2 py-1 border border-[var(--border)] text-xs rounded"
                   >
                     {skill}
                   </span>
@@ -296,10 +295,10 @@ const AlumniDashboard: React.FC = () => {
         </Card>
 
         {/* Blog Management */}
-        <Card variant="accent" className="transform -rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-black font-mono text-2xl text-white uppercase">
-              MY BLOGS
+        <Card variant="accent">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <h2 className="text-xl font-semibold text-[var(--fg)]">
+              My Blogs
             </h2>
             <Button
               variant="secondary"
@@ -307,39 +306,39 @@ const AlumniDashboard: React.FC = () => {
               onClick={() => setShowCreateBlog(true)}
             >
               <Plus size={16} />
-              NEW BLOG
+              New Blog
             </Button>
           </div>
           
           <div className="space-y-4">
             {userBlogs.map((blog) => (
-              <div key={blog.id} className="bg-white border-4 border-black p-4 transform rotate-1">
+              <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
                 <div>
-                  <h3 className="font-bold font-mono text-black uppercase text-sm mb-2">
+                  <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">
                     {blog.title}
                   </h3>
-                  <p className="font-mono text-xs text-gray-600 mb-3">
+                  <p className="text-xs text-[var(--muted)] mb-3">
                     {blog.excerpt}
                   </p>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-4">
-                      <span className="font-mono text-xs text-[#FF0080]">
+                      <span className="text-xs text-[var(--muted)]">
                         {blog.likes} likes
                       </span>
-                      <span className="font-mono text-xs text-gray-500">
+                      <span className="text-xs text-[var(--muted)]">
                         {blog.publishedAt}
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="success" size="sm">
-                        EDIT
+                        Edit
                       </Button>
                       <Button
                         variant="primary"
                         size="sm"
                         onClick={() => navigate(`/blog/${blog.id}`)}
                       >
-                        VIEW
+                        View
                       </Button>
                     </div>
                   </div>
@@ -348,13 +347,13 @@ const AlumniDashboard: React.FC = () => {
             ))}
             
             {userBlogs.length === 0 && (
-              <div className="bg-white border-4 border-black p-8 text-center transform rotate-2">
-                <BookOpen size={48} className="mx-auto mb-4 text-gray-400" />
-                <p className="font-mono text-gray-600 mb-4">
+              <div className="bg-[var(--card)] border border-[var(--border)] rounded-md p-8 text-center">
+                <BookOpen size={48} className="mx-auto mb-4 text-[var(--muted)]" />
+                <p className="text-[var(--muted)] mb-4">
                   You haven't published any blogs yet
                 </p>
                 <Button variant="primary" onClick={() => setShowCreateBlog(true)}>
-                  WRITE YOUR FIRST BLOG
+                  Write Your First Blog
                 </Button>
               </div>
             )}
@@ -363,10 +362,10 @@ const AlumniDashboard: React.FC = () => {
       </div>
 
       {/* Achievements */}
-      <Card variant="primary" className="transform rotate-0">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-black font-mono text-2xl text-black uppercase">
-            MY ACHIEVEMENTS
+      <Card variant="primary">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <h2 className="text-xl font-semibold text-[var(--fg)]">
+            My Achievements
           </h2>
           <Button
             variant="secondary"
@@ -374,32 +373,32 @@ const AlumniDashboard: React.FC = () => {
             onClick={() => setShowAddAchievement(true)}
           >
             <Plus size={16} />
-            ADD ACHIEVEMENT
+            Add Achievement
           </Button>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {userAchievements.map((achievement, index) => (
+          {userAchievements.map((achievement) => (
             <div
               key={achievement.id}
-              className={`bg-[#00FF80] border-4 border-black p-4 transform ${index % 2 === 0 ? 'rotate-1' : '-rotate-1'}`}
+              className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-4"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-[#FF0080] border-2 border-black flex items-center justify-center">
+                <div className="w-12 h-12 rounded-md bg-[var(--primary)] flex items-center justify-center flex-shrink-0">
                   <Award size={24} className="text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold font-mono text-black uppercase text-sm mb-1">
+                  <h3 className="font-semibold text-sm text-[var(--fg)] mb-1">
                     {achievement.title}
                   </h3>
-                  <p className="font-mono text-xs text-gray-700 mb-2">
+                  <p className="text-xs text-[var(--muted)] mb-2">
                     {achievement.description}
                   </p>
-                  <div className="flex items-center justify-between">
-                    <span className="bg-[#0080FF] text-white px-2 py-1 border-2 border-black font-mono text-xs font-bold uppercase">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="bg-neutral-200 dark:bg-neutral-700 text-[var(--fg)] px-2 py-1 text-xs rounded">
                       {achievement.category}
                     </span>
-                    <span className="font-mono text-xs text-gray-600">
+                    <span className="text-xs text-[var(--muted)]">
                       {achievement.date}
                     </span>
                   </div>
@@ -409,13 +408,13 @@ const AlumniDashboard: React.FC = () => {
           ))}
           
           {userAchievements.length === 0 && (
-            <div className="col-span-full bg-white border-4 border-black p-8 text-center transform -rotate-1">
-              <Award size={48} className="mx-auto mb-4 text-gray-400" />
-              <p className="font-mono text-gray-600 mb-4">
+            <div className="col-span-full bg-[var(--card)] border border-[var(--border)] rounded-md p-8 text-center">
+              <Award size={48} className="mx-auto mb-4 text-[var(--muted)]" />
+              <p className="text-[var(--muted)] mb-4">
                 No achievements added yet
               </p>
               <Button variant="primary" onClick={() => setShowAddAchievement(true)}>
-                ADD YOUR FIRST ACHIEVEMENT
+                Add Your First Achievement
               </Button>
             </div>
           )}
@@ -431,11 +430,11 @@ const AlumniDashboard: React.FC = () => {
     {/* Add Achievement Modal */}
     {showAddAchievement && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <Card variant="primary" className="max-w-lg w-full transform rotate-1">
+        <Card variant="primary" className="max-w-lg w-full">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black font-mono text-xl text-black uppercase flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-[var(--fg)] flex items-center gap-2">
               <Award size={20} />
-              ADD ACHIEVEMENT
+              Add Achievement
             </h2>
             <Button variant="danger" size="sm" onClick={() => setShowAddAchievement(false)}>
               <Edit size={14} />
@@ -443,37 +442,37 @@ const AlumniDashboard: React.FC = () => {
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide">
-                TITLE
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Title
               </label>
               <input
                 type="text"
                 value={newAchievement.title}
                 onChange={(e) => setNewAchievement({ ...newAchievement, title: e.target.value })}
-                className="w-full px-4 py-2 border-4 border-black font-mono text-black bg-white"
+                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
                 placeholder="e.g., Best Employee of the Year"
               />
             </div>
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide">
-                DESCRIPTION
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Description
               </label>
               <textarea
                 value={newAchievement.description}
                 onChange={(e) => setNewAchievement({ ...newAchievement, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 border-4 border-black font-mono text-black bg-white"
+                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
                 placeholder="Brief description of your achievement..."
               />
             </div>
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide text-sm">
-                CATEGORY
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Category
               </label>
               <select
                 value={newAchievement.category}
                 onChange={(e) => setNewAchievement({ ...newAchievement, category: e.target.value as Achievement['category'] })}
-                className="w-full px-4 py-2 border-4 border-black font-mono text-black bg-white"
+                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
               >
                 <option value="academic">Academic</option>
                 <option value="professional">Professional</option>
@@ -483,10 +482,10 @@ const AlumniDashboard: React.FC = () => {
             </div>
             <div className="flex gap-3">
               <Button variant="primary" className="flex-1" onClick={handleAddAchievement}>
-                SAVE
+                Save
               </Button>
               <Button variant="secondary" className="flex-1" onClick={() => setShowAddAchievement(false)}>
-                CANCEL
+                Cancel
               </Button>
             </div>
           </div>
@@ -497,11 +496,11 @@ const AlumniDashboard: React.FC = () => {
     {/* Create Blog Modal */}
     {showCreateBlog && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <Card variant="primary" className="max-w-2xl w-full transform rotate-1 max-h-[90vh] overflow-y-auto">
+        <Card variant="primary" className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-black font-mono text-xl text-black uppercase flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-[var(--fg)] flex items-center gap-2">
               <BookOpen size={20} />
-              WRITE NEW BLOG
+              Write New Blog
             </h2>
             <Button variant="danger" size="sm" onClick={() => setShowCreateBlog(false)}>
               <Edit size={14} />
@@ -509,47 +508,47 @@ const AlumniDashboard: React.FC = () => {
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide">
-                TITLE
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Title
               </label>
               <input
                 type="text"
                 value={blogData.title}
                 onChange={(e) => setBlogData({ ...blogData, title: e.target.value })}
-                className="w-full px-4 py-2 border-4 border-black font-mono text-black bg-white"
+                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
                 placeholder="Inspiring journey from campus to career"
               />
             </div>
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide">
-                CONTENT
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Content
               </label>
               <textarea
                 value={blogData.content}
                 onChange={(e) => setBlogData({ ...blogData, content: e.target.value })}
                 rows={8}
-                className="w-full px-4 py-2 border-4 border-black font-mono text-black bg-white"
+                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
                 placeholder="Share your story, insights, and experiences..."
               />
             </div>
             <div>
-              <label className="block text-black font-bold mb-2 font-mono uppercase tracking-wide text-sm">
-                TAGS (COMMA SEPARATED)
+              <label className="block text-[var(--fg)] font-medium mb-2 text-sm">
+                Tags (comma separated)
               </label>
               <input
                 type="text"
                 value={blogData.tags}
                 onChange={(e) => setBlogData({ ...blogData, tags: e.target.value })}
-                className="w-full px-4 py-2 border-4 border-black font-mono text-black bg-white"
+                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
                 placeholder="career, technology, mentorship"
               />
             </div>
             <div className="flex gap-3">
               <Button variant="primary" className="flex-1" onClick={handleCreateBlog}>
-                PUBLISH BLOG
+                Publish Blog
               </Button>
               <Button variant="secondary" className="flex-1" onClick={() => setShowCreateBlog(false)}>
-                CANCEL
+                Cancel
               </Button>
             </div>
           </div>
