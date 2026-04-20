@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, Send, User, Users, Trash2 } from 'lucide-react';
+import { MessageCircle, Send, User, Users, Trash2, ChevronLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAllConversations, getMessages, createMessage, subscribeToMessages, getUserById, markConversationAsRead, deleteMessage, subscribeToConversations } from '../../services/firebaseFirestore';
@@ -8,9 +8,11 @@ import Button from './Button';
 
 interface ChatInterfaceProps {
   onClose?: () => void;
+  /** `page` = tall layout for /messages; `panel` = fixed height in popover */
+  layout?: 'panel' | 'page';
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose, layout = 'panel' }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [conversations, setConversations] = useState<{ userId: string; lastMessage: Message; unreadCount: number }[]>([]);
@@ -19,7 +21,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
   const [messageContent, setMessageContent] = useState('');
   const [otherUser, setOtherUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [peerLabels, setPeerLabels] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const shellClass =
+    layout === 'page'
+      ? 'flex flex-col md:flex-row min-h-[min(520px,calc(100dvh-9rem))] md:min-h-[min(880px,calc(100vh-10rem))] h-[min(85dvh,calc(100vh-8rem))] md:h-[min(880px,calc(100vh-10rem))]'
+      : 'flex flex-col md:flex-row h-[min(85dvh,720px)] md:h-[600px]';
 
   useEffect(() => {
     if (!user) return;
@@ -45,6 +53,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
 
     return () => unsubscribe();
   }, [user]);
+
+  useEffect(() => {
+    if (!conversations.length) return;
+    let cancelled = false;
+    void (async () => {
+      const need = conversations.map((c) => c.userId);
+      const next: Record<string, string> = {};
+      for (const id of need) {
+        const u = await getUserById(id);
+        if (u?.name) next[id] = u.name;
+      }
+      if (!cancelled && Object.keys(next).length > 0) {
+        setPeerLabels((prev) => ({ ...prev, ...next }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [conversations]);
 
   useEffect(() => {
     if (!user || !selectedUserId) return;
@@ -136,9 +163,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="flex h-[600px] bg-[var(--bg)] border border-[var(--border)] rounded-lg overflow-hidden">
+    <div className={`${shellClass} bg-[var(--bg)] border-0 sm:border border-[var(--border)] rounded-lg overflow-hidden`}>
       {/* Conversations List */}
-      <div className="w-1/3 border-r border-[var(--border)] overflow-y-auto bg-[var(--card)]">
+      <div
+        className={`w-full md:w-[min(100%,320px)] md:max-w-[320px] md:flex-shrink-0 border-[var(--border)] overflow-y-auto bg-[var(--card)] flex flex-col min-h-0 max-h-[45dvh] md:max-h-none md:h-auto border-b md:border-b-0 md:border-r ${
+          selectedUserId ? 'hidden md:flex' : 'flex'
+        }`}
+      >
         <div className="p-4 border-b border-[var(--border)] bg-[var(--card)]">
           <h3 className="font-semibold text-[var(--fg)] text-lg flex items-center gap-2">
             <MessageCircle size={20} />
@@ -186,10 +217,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
                     <User size={24} className="text-[var(--fg)]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-semibold text-sm truncate ${
-                      selectedUserId === conv.userId ? 'text-[var(--fg)]' : 'text-[var(--fg)]'
-                    }`}>
-                      User {conv.userId.slice(0, 8)}
+                    <p
+                      className={`font-semibold text-sm truncate ${
+                        selectedUserId === conv.userId ? 'text-[var(--fg)]' : 'text-[var(--fg)]'
+                      }`}
+                      title={peerLabels[conv.userId] || conv.userId}
+                    >
+                      {peerLabels[conv.userId] || `Member ${conv.userId.slice(0, 8)}…`}
                     </p>
                     <p className={`text-xs truncate ${
                       selectedUserId === conv.userId ? 'text-[var(--muted)]' : 'text-[var(--muted)]'
@@ -215,23 +249,37 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
       </div>
 
       {/* Chat Window */}
-      <div className="flex-1 flex flex-col bg-[var(--bg)]">
-        {selectedUserId && otherUser ? (
+      <div
+        className={`flex-1 flex flex-col bg-[var(--bg)] min-h-0 min-w-0 ${
+          !selectedUserId ? 'hidden md:flex' : 'flex'
+        }`}
+      >
+        {selectedUserId ? (
           <>
+            <button
+              type="button"
+              className="md:hidden flex items-center gap-1 px-4 pt-3 pb-1 text-sm font-medium text-[var(--primary)]"
+              onClick={() => setSelectedUserId(null)}
+            >
+              <ChevronLeft size={18} aria-hidden />
+              All chats
+            </button>
             {/* Chat Header */}
-            <div className="p-4 border-b border-[var(--border)] bg-[var(--card)]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className="p-3 sm:p-4 border-b border-[var(--border)] bg-[var(--card)]">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                   <div className="w-12 h-12 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
                     <User size={24} className="text-[var(--fg)]" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-[var(--fg)]">{otherUser.name}</p>
-                    <p className="text-xs text-[var(--muted)]">{otherUser.email}</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[var(--fg)] truncate">
+                      {otherUser?.name || peerLabels[selectedUserId] || 'Loading…'}
+                    </p>
+                    <p className="text-xs text-[var(--muted)] truncate">{otherUser?.email || ''}</p>
                   </div>
                 </div>
                 {onClose && (
-                  <Button variant="secondary" size="sm" onClick={onClose}>
+                  <Button variant="secondary" size="sm" onClick={onClose} className="shrink-0 hidden sm:inline-flex">
                     Close
                   </Button>
                 )}
@@ -239,7 +287,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 bg-[var(--bg)] space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[var(--bg)] space-y-4 min-h-0">
               {messages.length === 0 ? (
                 <div className="text-center py-12">
                   <MessageCircle size={48} className="mx-auto text-[var(--muted)] mb-4" />
@@ -254,7 +302,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
                       className={`flex items-start gap-2 ${isSent ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[70%] px-4 py-3 rounded-lg group relative ${
+                        className={`max-w-[min(85%,20rem)] sm:max-w-[70%] px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg group relative ${
                           isSent
                             ? 'bg-[var(--primary)] text-white'
                             : 'bg-[var(--card)] text-[var(--fg)] border border-[var(--border)]'
@@ -286,19 +334,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ onClose }) => {
             </div>
 
             {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-[var(--border)] bg-[var(--card)]">
-              <div className="flex gap-3">
+            <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-[var(--border)] bg-[var(--card)]">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <input
                   type="text"
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--card)] placeholder:text-[var(--muted)]"
+                  className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 rounded-md border border-[var(--border)] bg-[var(--bg)] text-[var(--fg)] text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--card)] placeholder:text-[var(--muted)]"
                 />
-                <Button 
-                  type="submit" 
-                  variant="primary" 
-                  className="flex items-center gap-2"
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="flex items-center justify-center gap-2 shrink-0 w-full sm:w-auto"
                 >
                   <Send size={18} />
                   Send

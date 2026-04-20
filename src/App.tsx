@@ -31,6 +31,7 @@ import AdminEvents from './pages/admin/AdminEvents';
 import AdminJobs from './pages/admin/AdminJobs';
 import AdminReports from './pages/admin/AdminReports';
 import AccountSettings from './pages/AccountSettings';
+import Messages from './pages/Messages';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({
   children,
@@ -116,6 +117,14 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <AccountSettings />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/messages"
+                        element={
+                          <ProtectedRoute>
+                            <Messages />
                           </ProtectedRoute>
                         }
                       />

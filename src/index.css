@@ -23,12 +23,26 @@
     --primary-fg: theme(colors.white);
   }
 
-  html, body, #root {
+  html {
     height: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body, #root {
+    min-height: 100%;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-[var(--bg)] text-[var(--fg)] antialiased;
+  }
+
+  img,
+  video,
+  svg {
+    max-width: 100%;
+    height: auto;
   }
 }
 

@@ -7,9 +7,9 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)] overflow-x-hidden">
       <Header />
-      <main className="container mx-auto px-4 py-6">{children}</main>
+      <main className="container mx-auto max-w-full px-3 sm:px-4 py-4 sm:py-6">{children}</main>
     </div>
   );
 };

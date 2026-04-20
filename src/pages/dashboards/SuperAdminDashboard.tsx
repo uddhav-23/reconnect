@@ -7,8 +7,8 @@ import AddCollegeForm from '../../components/forms/AddCollegeForm';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import CreateSubAdminForm from '../../components/forms/CreateSubAdminForm';
 import { useAuth } from '../../contexts/AuthContext';
-import { getColleges, createCollege, updateCollege, getAlumni, createAlumni } from '../../services/firebaseFirestore';
-import { createUser } from '../../services/firebaseAuth';
+import { getColleges, createCollege, updateCollege, getAlumni } from '../../services/firebaseFirestore';
+import { createUserAsAdmin } from '../../services/firebaseAuth';
 import CreateUserForm from '../../components/forms/CreateUserForm';
 
 const SuperAdminDashboard: React.FC = () => {
@@ -119,7 +119,7 @@ const SuperAdminDashboard: React.FC = () => {
       const collegeId = await createCollege(collegePayload);
       
       // Create sub-admin user account
-      await createUser(collegeData.adminEmail, collegeData.adminPassword, {
+      await createUserAsAdmin(collegeData.adminEmail, collegeData.adminPassword, {
         name: collegeData.adminName,
         role: 'subadmin',
         universityId: user?.universityId || '1',
@@ -168,7 +168,7 @@ const SuperAdminDashboard: React.FC = () => {
 
       // Create or update sub-admin user account
       try {
-        await createUser(payload.adminEmail, payload.adminPassword, {
+        await createUserAsAdmin(payload.adminEmail, payload.adminPassword, {
           name: payload.adminName,
           role: 'subadmin',
           universityId: selectedCollege.universityId,
@@ -218,44 +218,22 @@ const SuperAdminDashboard: React.FC = () => {
           return;
         }
         userPayload.collegeId = userData.collegeId;
+        userPayload.graduationYear = userData.graduationYear || new Date().getFullYear();
+        userPayload.degree = userData.degree || '';
+        userPayload.department = userData.department || '';
+        userPayload.skills = [];
+        userPayload.achievements = [];
+        userPayload.blogs = [];
+        userPayload.connections = [];
+        userPayload.experience = [];
+        userPayload.education = [];
+        userPayload.socialLinks = {};
+        if (userData.currentCompany) userPayload.currentCompany = userData.currentCompany;
+        if (userData.currentPosition) userPayload.currentPosition = userData.currentPosition;
+        if (userData.location) userPayload.location = userData.location;
       }
-      
-      // Create user account
-      await createUser(userData.email, userData.password, userPayload);
 
-      // If alumni, create alumni profile
-      if (userData.role === 'alumni') {
-        const alumniPayload: any = {
-          email: userData.email,
-          name: userData.name,
-          role: 'alumni' as const,
-          universityId: user?.universityId || '1',
-          collegeId: userPayload.collegeId,
-          graduationYear: userData.graduationYear || new Date().getFullYear(),
-          degree: userData.degree || '',
-          department: userData.department || '',
-          skills: [],
-          achievements: [],
-          blogs: [],
-          connections: [],
-          experience: [],
-          education: [],
-          socialLinks: {},
-        };
-        
-        // Only add optional fields if they have values
-        if (userData.currentCompany) {
-          alumniPayload.currentCompany = userData.currentCompany;
-        }
-        if (userData.currentPosition) {
-          alumniPayload.currentPosition = userData.currentPosition;
-        }
-        if (userData.location) {
-          alumniPayload.location = userData.location;
-        }
-        
-        await createAlumni(alumniPayload);
-      }
+      await createUserAsAdmin(userData.email, userData.password, userPayload);
 
       // Show credentials
       setCreatedCredentials({

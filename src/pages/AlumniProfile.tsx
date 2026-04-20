@@ -152,7 +152,12 @@ const AlumniProfile: React.FC = () => {
             {/* Profile Picture */}
             <div className="w-24 h-24 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shadow-subtle">
               <span className="text-[var(--fg)] font-semibold text-2xl">
-                {alumni.name.split(' ').map(n => n[0]).join('')}
+                {(alumni.name || 'A')
+                  .trim()
+                  .split(/\s+/)
+                  .filter(Boolean)
+                  .map((n) => n[0])
+                  .join('') || '?'}
               </span>
             </div>
             
@@ -172,7 +177,7 @@ const AlumniProfile: React.FC = () => {
                 </div>
               )}
               <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-[var(--fg)] flex items-center gap-2 flex-wrap">
-                {alumni.name}
+                {alumni.name || 'Alumni'}
                 {alumni.verifiedAlumni && (
                   <span className="inline-flex items-center gap-1 text-sm font-normal text-emerald-600 dark:text-emerald-400" title="Verified alumni">
                     <BadgeCheck size={24} aria-hidden />
@@ -208,7 +213,7 @@ const AlumniProfile: React.FC = () => {
                 </p>
                 <p className="text-sm text-[var(--muted)] flex items-center gap-2">
                   <Calendar size={16} />
-                  Class of {alumni.graduationYear}
+                  {alumni.graduationYear != null ? `Class of ${alumni.graduationYear}` : 'Graduation year not set'}
                 </p>
               </div>
               
@@ -375,9 +380,9 @@ const AlumniProfile: React.FC = () => {
                 <p className="text-sm text-[var(--muted)]">Hidden — same as contact info for private profiles.</p>
               ) : (
               <div className="space-y-3">
-                {alumni.socialLinks.linkedin && (
+                {(alumni.socialLinks || {}).linkedin && (
                   <a 
-                    href={alumni.socialLinks.linkedin} 
+                    href={(alumni.socialLinks || {}).linkedin} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
@@ -386,9 +391,9 @@ const AlumniProfile: React.FC = () => {
                     <span className="text-sm">LinkedIn</span>
                   </a>
                 )}
-                {alumni.socialLinks.github && (
+                {(alumni.socialLinks || {}).github && (
                   <a 
-                    href={alumni.socialLinks.github} 
+                    href={(alumni.socialLinks || {}).github} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
@@ -397,9 +402,9 @@ const AlumniProfile: React.FC = () => {
                     <span className="text-sm">GitHub</span>
                   </a>
                 )}
-                {alumni.socialLinks.instagram && (
+                {(alumni.socialLinks || {}).instagram && (
                   <a 
-                    href={alumni.socialLinks.instagram} 
+                    href={(alumni.socialLinks || {}).instagram} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
@@ -408,9 +413,9 @@ const AlumniProfile: React.FC = () => {
                     <span className="text-sm">Instagram</span>
                   </a>
                 )}
-                {alumni.socialLinks.personal && (
+                {(alumni.socialLinks || {}).personal && (
                   <a 
-                    href={alumni.socialLinks.personal} 
+                    href={(alumni.socialLinks || {}).personal} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-[var(--fg)] hover:text-[var(--primary)] transition-colors"
@@ -429,7 +434,7 @@ const AlumniProfile: React.FC = () => {
                 Skills
               </h2>
               <div className="flex flex-wrap gap-2">
-                {alumni.skills.map((skill) => (
+                {(alumni.skills || []).map((skill) => (
                   <span 
                     key={skill}
                     className="bg-neutral-100 dark:bg-neutral-800 text-[var(--fg)] px-2 py-1 border border-[var(--border)] text-xs rounded"
@@ -449,7 +454,7 @@ const AlumniProfile: React.FC = () => {
                 About
               </h2>
               <p className="text-[var(--muted)] leading-relaxed">
-                {alumni.bio}
+                {alumni.bio || '—'}
               </p>
             </Card>
 
@@ -460,7 +465,7 @@ const AlumniProfile: React.FC = () => {
                 Education
               </h2>
               <div className="space-y-4">
-                {alumni.education.map((edu) => (
+                {(alumni.education || []).map((edu) => (
                   <div key={edu.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
                     <h3 className="font-semibold text-[var(--fg)] mb-1">
                       {edu.degree} in {edu.field}
@@ -488,7 +493,7 @@ const AlumniProfile: React.FC = () => {
                 Work Experience
               </h2>
               <div className="space-y-4">
-                {alumni.experience.map((exp) => (
+                {(alumni.experience || []).map((exp) => (
                   <div key={exp.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
@@ -523,7 +528,7 @@ const AlumniProfile: React.FC = () => {
                 Achievements
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {alumni.achievements.map((achievement) => (
+                {(alumni.achievements || []).map((achievement) => (
                   <div key={achievement.id} className="bg-neutral-100 dark:bg-neutral-800 border border-[var(--border)] rounded-md p-4">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 bg-[var(--primary)] rounded-md flex items-center justify-center flex-shrink-0">
@@ -552,13 +557,13 @@ const AlumniProfile: React.FC = () => {
             </Card>
 
             {/* Recent Blogs */}
-            {alumni.blogs.length > 0 && (
+            {(alumni.blogs || []).length > 0 && (
               <Card variant="secondary">
                 <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6">
                   Recent Blogs
                 </h2>
                 <div className="space-y-4">
-                  {alumni.blogs.slice(0, 3).map((blog) => (
+                  {(alumni.blogs || []).slice(0, 3).map((blog) => (
                     <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
                       <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">
                         {blog.title}

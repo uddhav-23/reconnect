@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, User, BookOpen, Moon, Sun, MessageCircle, Bell, Users, Settings } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import {
+  LogOut,
+  User,
+  BookOpen,
+  Moon,
+  Sun,
+  MessageCircle,
+  Bell,
+  Users,
+  Settings,
+  Menu,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getPendingConnections, getAllConversations, subscribeToPendingConnections, subscribeToConversations } from '../../services/firebaseFirestore';
@@ -9,9 +21,24 @@ import { isAdmin } from '../../lib/roles';
 import Button from '../common/Button';
 import SocialPanel from '../common/SocialPanel';
 
+const navLinks = [
+  { to: '/alumni', label: 'Alumni', icon: User },
+  { to: '/blogs', label: 'Blogs', icon: BookOpen },
+  { to: '/events', label: 'Events' },
+  { to: '/jobs', label: 'Jobs' },
+  { to: '/mentorship', label: 'Mentorship' },
+  { to: '/groups', label: 'Groups' },
+] as const;
+
 const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
   const { resolvedTheme, toggleTheme } = useTheme();
   const [showSocialPanel, setShowSocialPanel] = useState(false);
   const [socialPanelTab, setSocialPanelTab] = useState<'messages' | 'notifications' | 'connections'>('messages');
@@ -105,45 +132,60 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-[var(--card)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)/0.65] border-[var(--border)]">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Link 
-            to="/" 
-            className="text-xl md:text-2xl font-semibold text-[var(--fg)] tracking-tight hover:text-[var(--primary)] transition-colors"
-          >
-            Reconnect
-          </Link>
+      <div className="container mx-auto max-w-full px-3 sm:px-4 py-2.5 sm:py-3 relative">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 shrink">
+            <button
+              type="button"
+              className="lg:hidden inline-flex items-center justify-center h-10 w-10 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] shrink-0"
+              aria-expanded={mobileNavOpen}
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setMobileNavOpen((o) => !o)}
+            >
+              {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+            <Link
+              to="/"
+              className="text-lg sm:text-xl md:text-2xl font-semibold text-[var(--fg)] tracking-tight hover:text-[var(--primary)] transition-colors truncate min-w-0"
+            >
+              Reconnect
+            </Link>
+          </div>
 
-          <nav className="hidden lg:flex items-center gap-4 flex-wrap">
-            <Link 
-              to="/alumni" 
-              className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2 text-sm"
-            >
-              <User size={18} />
-              Alumni
-            </Link>
-            <Link 
-              to="/blogs" 
-              className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2 text-sm"
-            >
-              <BookOpen size={18} />
-              Blogs
-            </Link>
-            <Link to="/events" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Events</Link>
-            <Link to="/jobs" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Jobs</Link>
-            <Link to="/mentorship" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Mentorship</Link>
-            <Link to="/groups" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Groups</Link>
+          <nav className="hidden lg:flex items-center gap-4 flex-wrap" aria-label="Main">
+            {navLinks.map((item) =>
+              'icon' in item && item.icon ? (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2 text-sm"
+                >
+                  <item.icon size={18} />
+                  {item.label}
+                </Link>
+              ) : (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="text-[var(--muted)] hover:text-[var(--fg)] text-sm"
+                >
+                  {item.label}
+                </Link>
+              )
+            )}
           </nav>
 
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0">
             {user && (
               <>
                 {/* Messages Icon */}
                 <button
                   ref={messagesButtonRef}
-                  onClick={() => handleOpenSocialPanel('messages')}
+                  type="button"
+                  onClick={() => navigate('/messages')}
                   className="relative inline-flex items-center justify-center h-9 w-9 rounded-md border border-[var(--border)] bg-[var(--card)] shadow-subtle hover:shadow-card transition-shadow"
                   aria-label="Messages"
+                  title="Open messages"
                 >
                   <MessageCircle size={18} />
                   {unreadMessagesCount > 0 && (
@@ -187,42 +229,48 @@ const Header: React.FC = () => {
               {resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             {user ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
                 {isAdmin(user) && (
-                  <Link to="/admin" className="text-xs text-[var(--primary)] font-medium hidden sm:inline">
+                  <Link
+                    to="/admin"
+                    className="text-xs text-[var(--primary)] font-medium hidden md:inline shrink-0"
+                  >
                     Admin
                   </Link>
                 )}
                 <Link
                   to={`/dashboard/${user.role}`}
-                  className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
+                  className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors truncate max-w-[4.5rem] sm:max-w-[10rem] md:max-w-[14rem] text-xs sm:text-sm"
+                  title={user.name}
                 >
                   {user.name}
                 </Link>
                 <Link
                   to="/settings"
-                  className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--fg)]"
+                  className="inline-flex items-center justify-center h-9 w-9 sm:w-auto sm:px-2 rounded-md border border-transparent text-[var(--muted)] hover:text-[var(--fg)] hover:bg-neutral-100 dark:hover:bg-neutral-800"
                   title="Account settings"
                 >
-                  <Settings size={16} />
-                  <span className="hidden sm:inline">Settings</span>
+                  <Settings size={18} />
+                  <span className="hidden lg:inline ml-1 text-sm">Settings</span>
                 </Link>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={handleLogout}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1 px-2 sm:px-3"
+                  title="Log out"
                 >
-                  <LogOut size={16} />
-                  Logout
+                  <LogOut size={16} className="sm:mr-0" />
+                  <span className="hidden sm:inline">Logout</span>
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => navigate('/login')}
+                  className="text-xs sm:text-sm px-2 sm:px-3"
                 >
                   Login
                 </Button>
@@ -230,6 +278,7 @@ const Header: React.FC = () => {
                   variant="primary"
                   size="sm"
                   onClick={() => navigate('/signup')}
+                  className="text-xs sm:text-sm px-2 sm:px-3"
                 >
                   Sign Up
                 </Button>
@@ -237,6 +286,34 @@ const Header: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Mobile / tablet navigation */}
+        {mobileNavOpen && (
+          <>
+            <button
+              type="button"
+              className="lg:hidden fixed inset-0 z-[45] bg-black/40"
+              aria-label="Close menu"
+              onClick={() => setMobileNavOpen(false)}
+            />
+            <nav
+              className="lg:hidden absolute left-0 right-0 top-full z-[48] border-b border-[var(--border)] bg-[var(--card)] shadow-lg px-3 py-3 flex flex-col gap-1 max-h-[min(70vh,calc(100dvh-4rem))] overflow-y-auto"
+              aria-label="Mobile main"
+            >
+              {navLinks.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className="flex items-center gap-2 px-3 py-3 rounded-md text-base text-[var(--fg)] hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  {'icon' in item && item.icon && <item.icon size={20} className="shrink-0 text-[var(--muted)]" />}
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </>
+        )}
       </div>
       {showSocialPanel && user && buttonPosition && (
         <SocialPanel

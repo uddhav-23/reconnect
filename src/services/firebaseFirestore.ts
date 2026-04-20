@@ -223,6 +223,7 @@ export const getAlumniById = async (alumniId: string): Promise<Alumni | null> =>
       skills: data.skills || [],
       experience: data.experience || [],
       education: data.education || [],
+      socialLinks: data.socialLinks || {},
     } as Alumni;
   } catch (error: any) {
     throw new Error(error.message || 'Failed to fetch alumni');

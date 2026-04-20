@@ -18,7 +18,7 @@ import {
   query,
   where,
 } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth, db, credentialProvisionerAuth } from '../config/firebase';
 import { emailMatchesInstitutionalDomain } from '../config/env';
 import { User } from '../types';
 
@@ -90,6 +90,50 @@ export const createUser = async (
     }
     
     return newUser;
+  } catch (error: any) {
+    throw new Error(error.message || 'User creation failed');
+  }
+};
+
+/**
+ * Create a user from super/sub-admin dashboards without switching the current login session.
+ * Uses a secondary Firebase Auth app, then signs that session out so the admin stays signed in.
+ */
+export const createUserAsAdmin = async (
+  email: string,
+  password: string,
+  userData: Partial<User>
+): Promise<User> => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      credentialProvisionerAuth,
+      email,
+      password
+    );
+    const firebaseUser = userCredential.user;
+
+    const newUser: User = {
+      id: firebaseUser.uid,
+      email: firebaseUser.email!,
+      name: userData.name || '',
+      role: userData.role || 'user',
+      createdAt: new Date().toISOString(),
+      ...userData,
+    };
+
+    let cleanedUser = removeUndefined(newUser);
+    if (cleanedUser.role === 'alumni' && emailMatchesInstitutionalDomain(cleanedUser.email)) {
+      cleanedUser = { ...cleanedUser, verifiedAlumni: true };
+    }
+
+    await setDoc(doc(db, 'users', firebaseUser.uid), cleanedUser);
+
+    if (userData.name) {
+      await updateProfile(firebaseUser, { displayName: userData.name });
+    }
+
+    await signOut(credentialProvisionerAuth);
+    return cleanedUser as User;
   } catch (error: any) {
     throw new Error(error.message || 'User creation failed');
   }

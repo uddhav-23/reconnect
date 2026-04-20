@@ -5,8 +5,8 @@ import Button from '../../components/common/Button';
 import AddAlumniForm from '../../components/forms/AddAlumniForm';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAlumni, createAlumni, updateAlumni, deleteAlumni, getBlogs, deleteBlog } from '../../services/firebaseFirestore';
-import { createUser } from '../../services/firebaseAuth';
+import { getAlumni, updateAlumni, deleteAlumni, getBlogs, deleteBlog } from '../../services/firebaseFirestore';
+import { createUserAsAdmin } from '../../services/firebaseAuth';
 import EditAlumniForm from '../../components/forms/EditAlumniForm';
 
 const SubAdminDashboard: React.FC = () => {
@@ -53,22 +53,12 @@ const SubAdminDashboard: React.FC = () => {
 
   const handleAddAlumni = async (alumniData: any) => {
     try {
-      // Create user account first
-      await createUser(alumniData.email, alumniData.password, {
-        name: alumniData.name,
-        role: 'alumni',
-        universityId: user?.universityId || '1',
-        collegeId: user?.collegeId || '1',
-        phone: alumniData.phone,
-      });
-
-      // Create alumni profile in Firestore
       const alumniPayload = {
-        email: alumniData.email,
         name: alumniData.name,
         role: 'alumni' as const,
         universityId: user?.universityId || '1',
         collegeId: user?.collegeId || '1',
+        phone: alumniData.phone,
         graduationYear: alumniData.graduationYear,
         degree: alumniData.degree,
         department: alumniData.department,
@@ -76,9 +66,8 @@ const SubAdminDashboard: React.FC = () => {
         currentPosition: alumniData.currentPosition,
         location: alumniData.location,
         bio: alumniData.bio,
-        skills: alumniData.skills,
-        socialLinks: alumniData.socialLinks,
-        phone: alumniData.phone,
+        skills: Array.isArray(alumniData.skills) ? alumniData.skills : [],
+        socialLinks: alumniData.socialLinks || {},
         address: alumniData.address,
         connections: [],
         achievements: [],
@@ -87,7 +76,7 @@ const SubAdminDashboard: React.FC = () => {
         education: [],
       };
 
-      await createAlumni(alumniPayload);
+      await createUserAsAdmin(alumniData.email, alumniData.password, alumniPayload);
       
       // Reload data
       await loadData();

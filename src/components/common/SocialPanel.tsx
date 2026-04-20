@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { X, MessageCircle, Bell, Users, Check, X as XIcon, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPendingConnections, getAllConnections, updateConnection, getUserById, subscribeToPendingConnections } from '../../services/firebaseFirestore';
@@ -17,6 +18,7 @@ interface SocialPanelProps {
 const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onClose, position }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isDesktop = useMediaQuery('(min-width: 640px)');
   const [activeTab, setActiveTab] = useState<'messages' | 'notifications' | 'connections'>(initialTab);
   const [pendingConnections, setPendingConnections] = useState<Connection[]>([]);
   const [allConnections, setAllConnections] = useState<Connection[]>([]);
@@ -127,19 +129,25 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
     return null;
   }
 
+  const panelPositionStyle: React.CSSProperties = {
+    top: position ? `${position.top}px` : '64px',
+    ...(isDesktop
+      ? { right: position ? `${position.right}px` : '16px' }
+      : { left: '12px', right: '12px' }),
+  };
+
   return (
     <>
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black bg-opacity-20 z-40" onClick={onClose} />
       
       {/* Panel positioned below button */}
-      <div 
-        ref={panelRef} 
-        className="fixed z-50 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-card w-full max-w-md max-h-[calc(100vh-5rem)] flex flex-col overflow-hidden"
-        style={{
-          top: position ? `${position.top}px` : '64px',
-          right: position ? `${position.right}px` : '16px',
-        }}
+      <div
+        ref={panelRef}
+        className={`fixed z-50 bg-[var(--card)] border border-[var(--border)] rounded-lg shadow-card max-h-[min(90dvh,calc(100vh-3rem))] flex flex-col overflow-hidden ${
+          isDesktop ? 'w-full max-w-md' : ''
+        }`}
+        style={panelPositionStyle}
       >
         {/* Header */}
         <div className="p-4 border-b border-[var(--border)] bg-[var(--card)] flex items-center justify-between">
@@ -195,8 +203,22 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
         {/* Content */}
         <div className="flex-1 overflow-hidden">
           {activeTab === 'messages' && (
-            <div className="h-full">
-              <ChatInterface onClose={onClose} />
+            <div className="h-full flex flex-col min-h-0">
+              <div className="shrink-0 px-3 py-2 border-b border-[var(--border)] flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/messages');
+                    onClose();
+                  }}
+                  className="text-sm font-medium text-[var(--primary)] hover:underline"
+                >
+                  Open full-page messages
+                </button>
+              </div>
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <ChatInterface onClose={onClose} layout="panel" />
+              </div>
             </div>
           )}
 
