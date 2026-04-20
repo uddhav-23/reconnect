@@ -1,107 +1,193 @@
 rules_version = '2';
 service cloud.firestore {
-  // Helper function to check if user document exists
-  function userExists() {
-    return exists(/databases/$(database)/documents/users/$(request.auth.uid));
-  }
-  
-  // Helper function to get user role from Firestore
-  function getUserRole() {
-    return userExists() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role : null;
-  }
-  
-  // Helper function to check if user is superadmin
-  function isSuperAdmin() {
-    return request.auth != null && userExists() && getUserRole() == 'superadmin';
-  }
-  
-  // Helper function to check if user is subadmin
-  function isSubAdmin() {
-    return request.auth != null && userExists() && getUserRole() == 'subadmin';
-  }
-  
-  // Helper function to check if user is admin (superadmin or subadmin)
-  function isAdmin() {
-    return isSuperAdmin() || isSubAdmin();
-  }
-  
   match /databases/{database}/documents {
-    // Users collection
-    match /users/{userId} {
-      // Allow reading any user document (needed for alumni directory)
-      // Allow reading alumni profiles publicly, but require auth for other operations
-      allow read: if true;
-      // Allow users to write their own profile
-      allow write: if request.auth != null && request.auth.uid == userId;
-      // Allow creating new user documents when authenticated
-      allow create: if request.auth != null;
+
+    function userExists() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
     }
-    
-    // Colleges collection
+
+    function getUserRole() {
+      return userExists()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null && userExists() && getUserRole() == 'superadmin';
+    }
+
+    function isSubAdmin() {
+      return request.auth != null && userExists() && getUserRole() == 'subadmin';
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || isSubAdmin();
+    }
+
+    function isMessageParticipant() {
+      return request.auth != null
+        && (resource.data.senderId == request.auth.uid
+            || resource.data.receiverId == request.auth.uid);
+    }
+
+    function isMentorshipParticipant(mentorshipId) {
+      let m = get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data;
+      return request.auth != null
+        && (m.mentorId == request.auth.uid || m.menteeId == request.auth.uid);
+    }
+
+    function isGroupMember(groupId) {
+      let g = get(/databases/$(database)/documents/groups/$(groupId)).data;
+      return request.auth != null && request.auth.uid in g.members;
+    }
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     match /colleges/{collegeId} {
       allow read: if request.auth != null;
-      allow create: if isAdmin();
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /blogs/{blogId} {
+      allow read: if resource.data.status != 'draft'
+        || (request.auth != null
+            && (resource.data.authorId == request.auth.uid || isAdmin()));
+      allow create: if request.auth != null
+        && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && (resource.data.authorId == request.auth.uid || isAdmin());
+    }
+
+    match /achievements/{achievementId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /connections/{connectionId} {
+      allow read: if request.auth != null
+        && (resource.data.requesterId == request.auth.uid
+            || resource.data.receiverId == request.auth.uid);
+      allow create: if request.auth != null
+        && request.resource.data.requesterId == request.auth.uid;
+      allow update, delete: if request.auth != null
+        && (resource.data.receiverId == request.auth.uid
+            || resource.data.requesterId == request.auth.uid);
+    }
+
+    match /messages/{messageId} {
+      allow read: if request.auth != null && isMessageParticipant();
+      allow create: if request.auth != null
+        && request.resource.data.senderId == request.auth.uid;
+      allow update: if request.auth != null && isMessageParticipant();
+      allow delete: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && (
+        isAdmin()
+        || (request.resource.data.userId == request.auth.uid
+            && request.resource.data.actorId == request.auth.uid)
+        || (request.resource.data.type == 'message'
+            && request.resource.data.keys().hasAll(['userId','messageId','actorId'])
+            && exists(/databases/$(database)/documents/messages/$(request.resource.data.messageId))
+            && get(/databases/$(database)/documents/messages/$(request.resource.data.messageId)).data.senderId == request.resource.data.actorId
+            && get(/databases/$(database)/documents/messages/$(request.resource.data.messageId)).data.receiverId == request.resource.data.userId
+            && request.resource.data.actorId == request.auth.uid)
+        || (request.resource.data.type == 'comment'
+            && request.resource.data.keys().hasAll(['userId','actorId'])
+            && request.resource.data.actorId == request.auth.uid)
+        || (request.resource.data.type == 'mentorship'
+            && request.resource.data.keys().hasAll(['userId','actorId','mentorshipId'])
+            && exists(/databases/$(database)/documents/mentorships/$(request.resource.data.mentorshipId))
+            && (
+              (
+                get(/databases/$(database)/documents/mentorships/$(request.resource.data.mentorshipId)).data.mentorId == request.resource.data.userId
+                && get(/databases/$(database)/documents/mentorships/$(request.resource.data.mentorshipId)).data.menteeId == request.auth.uid
+                && request.resource.data.actorId == request.auth.uid
+              )
+              || (
+                get(/databases/$(database)/documents/mentorships/$(request.resource.data.mentorshipId)).data.menteeId == request.resource.data.userId
+                && get(/databases/$(database)/documents/mentorships/$(request.resource.data.mentorshipId)).data.mentorId == request.auth.uid
+                && request.resource.data.actorId == request.auth.uid
+              )
+            ))
+      );
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    match /events/{eventId} {
+      allow read: if true;
+      allow create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /jobs/{jobId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && (getUserRole() == 'alumni' || isAdmin());
+      allow update: if request.auth != null
+        && (resource.data.postedBy == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null
+        && (resource.data.postedBy == request.auth.uid || isAdmin());
+    }
+
+    match /mentorships/{mentorshipId} {
+      allow read: if request.auth != null
+        && (resource.data.mentorId == request.auth.uid
+            || resource.data.menteeId == request.auth.uid
+            || isAdmin());
+      allow create: if request.auth != null
+        && request.resource.data.menteeId == request.auth.uid;
+      allow update: if request.auth != null
+        && (resource.data.mentorId == request.auth.uid
+            || resource.data.menteeId == request.auth.uid
+            || isAdmin());
+      allow delete: if isAdmin();
+
+      match /messages/{msgId} {
+        allow read, create: if request.auth != null
+          && isMentorshipParticipant(mentorshipId);
+        allow update, delete: if false;
+      }
+    }
+
+    match /groups/{groupId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null
+        && (request.auth.uid in resource.data.adminIds || isAdmin());
+      allow delete: if isAdmin();
+
+      match /messages/{msgId} {
+        allow read: if request.auth != null && isGroupMember(groupId);
+        allow create: if request.auth != null
+          && isGroupMember(groupId)
+          && request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if false;
+      }
+    }
+
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null
+        && request.resource.data.reporterId == request.auth.uid;
       allow update: if isAdmin();
       allow delete: if isSuperAdmin();
     }
-    
-    // Blogs collection
-    match /blogs/{blogId} {
-      allow read: if request.auth != null || request.auth == null;
-      allow create: if request.auth != null && 
-        (request.resource.data.authorId == request.auth.uid || isAdmin());
-      allow update, delete: if request.auth != null && 
-        (resource.data.authorId == request.auth.uid || isAdmin());
-    }
-    
-    // Achievements collection
-    match /achievements/{achievementId} {
-      allow read: if request.auth != null || request.auth == null;
-      allow create: if request.auth != null && 
-        (request.resource.data.userId == request.auth.uid || isAdmin());
-      allow update, delete: if request.auth != null && 
-        (resource.data.userId == request.auth.uid || isAdmin());
-    }
-    
-    // Connections collection
-    match /connections/{connectionId} {
-      allow read: if request.auth != null && 
-        (resource.data.requesterId == request.auth.uid || 
-         resource.data.receiverId == request.auth.uid);
-      allow create: if request.auth != null && 
-        request.resource.data.requesterId == request.auth.uid;
-      allow update: if request.auth != null && 
-        (resource.data.receiverId == request.auth.uid || 
-         resource.data.requesterId == request.auth.uid);
-      allow delete: if request.auth != null && 
-        (resource.data.requesterId == request.auth.uid || 
-         resource.data.receiverId == request.auth.uid);
-    }
-
-    // Messages collection
-    match /messages/{messageId} {
-      allow read: if request.auth != null &&
-        (resource.data.senderId == request.auth.uid ||
-         resource.data.receiverId == request.auth.uid);
-      allow create: if request.auth != null &&
-        request.resource.data.senderId == request.auth.uid;
-      allow update: if request.auth != null &&
-        (resource.data.senderId == request.auth.uid ||
-         resource.data.receiverId == request.auth.uid);
-      // Soft delete - users can only add themselves to deletedBy array
-      allow delete: if false; // Prevent hard deletes, use update instead
-    }
-
-    // Notifications collection
-    match /notifications/{notificationId} {
-      allow read: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
-      allow delete: if request.auth != null &&
-        resource.data.userId == request.auth.uid;
-    }
   }
 }
-

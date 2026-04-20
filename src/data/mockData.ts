@@ -237,8 +237,8 @@ export const mockUsers: User[] = [
 
 export const mockBlogs: Blog[] = [
   {
-    id: '1',
-    title: 'My Journey from Student to Tech Lead',
+    id: 'mock-blog-student-to-tech-lead',
+    title: 'My Journey from Student to Tech Lead (2026 edition)',
     content: `# My Journey from Student to Tech Lead
 
 When I first stepped into Tech State University as a Computer Science freshman, I never imagined I'd be leading a team of 15 engineers at Google just four years after graduation. This is the story of my journey, the challenges I faced, and the lessons I learned along the way.
@@ -286,19 +286,21 @@ My journey is far from over. I'm currently working on launching a new product th
 Remember, every expert was once a beginner. Stay curious, work hard, and don't be afraid to take calculated risks. Your journey might be different from mine, but with dedication and the right mindset, you can achieve your goals.
 
 Feel free to connect with me if you have questions or want to discuss career opportunities in tech!`,
-    excerpt: 'A personal story about growth in the tech industry, from college freshman to tech lead at Google.',
-    tags: ['career', 'technology', 'leadership', 'google', 'microsoft'],
+    excerpt:
+      'Updated for 2026: from campus to leading cloud infrastructure — habits, mentors, and lessons that still apply.',
+    tags: ['career', 'technology', 'leadership', 'google', 'microsoft', 'alumni'],
     authorId: '3',
     author: mockAlumni[0],
-    publishedAt: '2024-01-20',
+    publishedAt: '2026-03-12T10:00:00.000Z',
+    status: 'published',
     likes: 45,
     likedBy: ['4', '5'],
     comments: [],
     shares: 12,
   },
   {
-    id: '2',
-    title: 'Breaking into Product Management',
+    id: 'mock-blog-breaking-into-pm',
+    title: 'Breaking into Product Management in 2026',
     content: `# Breaking into Product Management: A Complete Guide
 
 Product Management is one of the most sought-after roles in tech, but it's also one of the most misunderstood. After three years as a Product Manager at Microsoft, I want to share insights on how to break into this exciting field.
@@ -420,15 +422,49 @@ Product Management is challenging but incredibly rewarding. You get to solve rea
 Remember, every PM started somewhere. Focus on building the right skills, gaining relevant experience, and networking with the community. The opportunities are out there – you just need to be prepared to seize them.
 
 Good luck on your PM journey! Feel free to reach out if you have questions or want to discuss specific opportunities.`,
-    excerpt: 'Tips and strategies for aspiring product managers, including skills needed and how to break into the field.',
-    tags: ['product management', 'career advice', 'microsoft', 'strategy'],
+    excerpt:
+      'What changed in PM hiring and what stayed the same — frameworks, stories, and how alumni can help you prepare.',
+    tags: ['product management', 'career advice', 'microsoft', 'strategy', 'mentorship'],
     authorId: '4',
     author: mockAlumni[1],
-    publishedAt: '2024-01-18',
+    publishedAt: '2026-02-28T14:30:00.000Z',
+    status: 'published',
     likes: 32,
     likedBy: ['3'],
     comments: [],
     shares: 8,
+  },
+  {
+    id: 'mock-blog-why-reconnect-matters',
+    title: 'Why the alumni network still matters in 2026',
+    content: `# Why the alumni network still matters in 2026
+
+Campus placements and LinkedIn are crowded. What still cuts through is **trust** — someone who sat in the same labs, understands your college shorthand, and will take a 15-minute call because you share a batch or a professor.
+
+## What I use the network for
+
+- **Honest role context** — not job descriptions, but how teams really work.
+- **Warm intros** — a short note from a known alum beats a cold application.
+- **Giving back** — mock interviews, resume reviews, and pointing juniors to the right courses.
+
+## Small habits that compound
+
+1. Update your profile once a quarter.
+2. Comment on one alum post a week — visibility matters.
+3. Offer something specific: "I can review system-design notes" beats "let me know if you need help."
+
+If you are reading this on Reconnect: introduce yourself in a post this month. The network only works if we show up.`,
+    excerpt:
+      'Short read on trust, warm intros, and habits that make alumni networks useful long after graduation.',
+    tags: ['networking', 'community', 'career', 'reconnect'],
+    authorId: '3',
+    author: mockAlumni[0],
+    publishedAt: '2026-04-01T09:00:00.000Z',
+    status: 'published',
+    likes: 18,
+    likedBy: ['4', '5'],
+    comments: [],
+    shares: 5,
   },
 ];
 
@@ -450,7 +486,7 @@ export const mockConnections: Connection[] = [
 ];
 
 // Update alumni with blogs
-mockAlumni[0].blogs = [mockBlogs[0]];
+mockAlumni[0].blogs = [mockBlogs[0], mockBlogs[2]];
 mockAlumni[1].blogs = [mockBlogs[1]];
 mockAlumni[0].achievements = [mockAchievements[0], mockAchievements[1]];
 mockAlumni[1].achievements = [mockAchievements[2]];

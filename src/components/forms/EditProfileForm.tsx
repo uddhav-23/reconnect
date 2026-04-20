@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Lock } from 'lucide-react';
+import { X, User, Lock, Shield, GraduationCap } from 'lucide-react';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Input from '../common/Input';
@@ -27,6 +27,8 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
     github: (user as any)?.socialLinks?.github || '',
     twitter: (user as any)?.socialLinks?.twitter || '',
     personal: (user as any)?.socialLinks?.personal || '',
+    openToMentoring: (user as any)?.openToMentoring !== false,
+    profilePrivate: (user as any)?.profileVisibility === 'private',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -41,16 +43,24 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
     
     try {
       const updatedData = {
-        ...profileData,
-        skills: profileData.skills.split(',').map(skill => skill.trim()).filter(Boolean),
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone,
+        bio: profileData.bio,
+        location: profileData.location,
+        currentCompany: profileData.currentCompany,
+        currentPosition: profileData.currentPosition,
+        skills: profileData.skills.split(',').map((skill) => skill.trim()).filter(Boolean),
         socialLinks: {
           linkedin: profileData.linkedin,
           github: profileData.github,
           twitter: profileData.twitter,
           personal: profileData.personal,
         },
+        profileVisibility: profileData.profilePrivate ? ('private' as const) : ('public' as const),
+        ...(user?.role === 'alumni' ? { openToMentoring: profileData.openToMentoring } : {}),
       };
-      
+
       await updateProfile(updatedData);
       alert('Profile updated successfully!');
       onClose();
@@ -211,6 +221,47 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
                   </div>
                 </div>
               )}
+
+              {/* Privacy & mentorship */}
+              <div className="bg-neutral-900 border-4 border-black p-4 transform rotate-1">
+                <h3 className="font-black font-mono text-lg text-white uppercase mb-4 flex items-center gap-2">
+                  <Shield size={18} />
+                  PRIVACY & VISIBILITY
+                </h3>
+                <label className="flex items-start gap-3 cursor-pointer text-white mb-4">
+                  <input
+                    type="checkbox"
+                    name="profilePrivate"
+                    checked={profileData.profilePrivate}
+                    onChange={(e) =>
+                      setProfileData({ ...profileData, profilePrivate: e.target.checked })
+                    }
+                    className="mt-1 h-4 w-4 shrink-0"
+                  />
+                  <span className="text-sm font-mono leading-snug">
+                    Private profile — hide email, phone, address, and social links from people you are
+                    not connected with (accepted connection).
+                  </span>
+                </label>
+                {user?.role === 'alumni' && (
+                  <label className="flex items-start gap-3 cursor-pointer text-white">
+                    <input
+                      type="checkbox"
+                      name="openToMentoring"
+                      checked={profileData.openToMentoring}
+                      onChange={(e) =>
+                        setProfileData({ ...profileData, openToMentoring: e.target.checked })
+                      }
+                      className="mt-1 h-4 w-4 shrink-0"
+                    />
+                    <span className="text-sm font-mono leading-snug flex items-center gap-2">
+                      <GraduationCap size={16} className="shrink-0" />
+                      Open to mentorship — when off, you will not receive mentorship requests and your
+                      profile shows &quot;Not ready for mentorship&quot;.
+                    </span>
+                  </label>
+                )}
+              </div>
 
               {/* Social Links */}
               <div className="bg-[#FF0080] border-4 border-black p-4 transform -rotate-1">

@@ -5,9 +5,21 @@ import {
   updatePassword,
   updateProfile,
   sendPasswordResetEmail,
+  deleteUser,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
+import { emailMatchesInstitutionalDomain } from '../config/env';
 import { User } from '../types';
 
 // Helper to remove undefined fields (Firestore doesn't allow undefined)
@@ -65,9 +77,11 @@ export const createUser = async (
       ...userData,
     };
     
-    // Remove undefined fields before saving to Firestore
-    const cleanedUser = removeUndefined(newUser);
-    
+    let cleanedUser = removeUndefined(newUser);
+    if (cleanedUser.role === 'alumni' && emailMatchesInstitutionalDomain(cleanedUser.email)) {
+      cleanedUser = { ...cleanedUser, verifiedAlumni: true };
+    }
+
     await setDoc(doc(db, 'users', firebaseUser.uid), cleanedUser);
     
     // Update Firebase Auth profile
@@ -159,5 +173,44 @@ export const getCurrentUserData = async (userId: string): Promise<User | null> =
   } catch (error: any) {
     throw new Error(error.message || 'Failed to get user data');
   }
+};
+
+/**
+ * Re-authenticate and delete the Firebase Auth account and user profile document.
+ * Related subcollections may remain until cleaned by a Cloud Function (recommended for production).
+ */
+export const deleteUserAccount = async (password: string): Promise<void> => {
+  const u = auth.currentUser;
+  if (!u?.email) throw new Error('Not authenticated');
+  const uid = u.uid;
+  await signInWithEmailAndPassword(auth, u.email, password);
+  await deleteDoc(doc(db, 'users', uid)).catch(() => {});
+  await deleteUser(auth.currentUser!);
+};
+
+/**
+ * Download a JSON snapshot of the user profile and authored content.
+ */
+export const exportUserDataAsJson = async (userId: string): Promise<void> => {
+  const userSnap = await getDoc(doc(db, 'users', userId));
+  const blogsSnap = await getDocs(
+    query(collection(db, 'blogs'), where('authorId', '==', userId))
+  );
+  const achievementsSnap = await getDocs(
+    query(collection(db, 'achievements'), where('userId', '==', userId))
+  );
+  const payload = {
+    user: userSnap.exists() ? { id: userSnap.id, ...userSnap.data() } : null,
+    blogs: blogsSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    achievements: achievementsSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `reconnect-export-${userId}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 };
 

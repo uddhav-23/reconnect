@@ -5,6 +5,10 @@ interface ThemeTransitionProps {
   onComplete: () => void;
 }
 
+/**
+ * Short, professional theme switch affordance: frosted blur + gentle fade
+ * (replaces the previous high-contrast wave/sparkle “flash” effect).
+ */
 const ThemeTransition: React.FC<ThemeTransitionProps> = ({ isActive, onComplete }) => {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -13,8 +17,8 @@ const ThemeTransition: React.FC<ThemeTransitionProps> = ({ isActive, onComplete 
       setIsVisible(true);
       const timer = setTimeout(() => {
         setIsVisible(false);
-        setTimeout(onComplete, 300);
-      }, 800);
+        setTimeout(onComplete, 320);
+      }, 780);
       return () => clearTimeout(timer);
     }
   }, [isActive, onComplete]);
@@ -26,26 +30,9 @@ const ThemeTransition: React.FC<ThemeTransitionProps> = ({ isActive, onComplete 
       className={`fixed inset-0 z-[9999] pointer-events-none transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
+      aria-hidden
     >
-      {/* Wavy overlay layers */}
-      <div className="absolute inset-0 wave-layer-1"></div>
-      <div className="absolute inset-0 wave-layer-2"></div>
-      <div className="absolute inset-0 wave-layer-3"></div>
-      
-      {/* Sparkle effects */}
-      <div className="absolute inset-0 sparkle-container">
-        {[...Array(20)].map((_, i) => (
-          <div
-            key={i}
-            className="sparkle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 0.5}s`,
-            }}
-          />
-        ))}
-      </div>
+      <div className="theme-transition-veil absolute inset-0" />
     </div>
   );
 };

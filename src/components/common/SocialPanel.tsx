@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, MessageCircle, Bell, Users, Check, X as XIcon, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPendingConnections, getAllConnections, updateConnection, getUserById, subscribeToPendingConnections } from '../../services/firebaseFirestore';
-import { Connection, User as UserType } from '../../types';
+import { subscribeNotifications, markNotificationRead } from '../../services/platformFirestore';
+import { Connection, User as UserType, AppNotification } from '../../types';
+import { useNavigate } from 'react-router-dom';
 import ChatInterface from './ChatInterface';
 import Button from './Button';
 
@@ -14,11 +16,13 @@ interface SocialPanelProps {
 
 const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onClose, position }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'messages' | 'notifications' | 'connections'>(initialTab);
   const [pendingConnections, setPendingConnections] = useState<Connection[]>([]);
   const [allConnections, setAllConnections] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [connectionUsers, setConnectionUsers] = useState<Map<string, UserType>>(new Map());
+  const [appNotifications, setAppNotifications] = useState<AppNotification[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close
@@ -76,6 +80,12 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
     });
 
     return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsub = subscribeNotifications(user.id, setAppNotifications);
+    return () => unsub();
   }, [user]);
 
   const handleAcceptConnection = async (connectionId: string) => {
@@ -196,62 +206,94 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
                 <div className="text-center py-8">
                   <p className="text-[var(--muted)]">Loading notifications...</p>
                 </div>
-              ) : pendingConnections.length === 0 ? (
-                <div className="text-center py-12">
-                  <Bell size={64} className="mx-auto text-[var(--muted)] mb-4" />
-                  <p className="text-lg text-[var(--fg)] mb-2">No pending requests</p>
-                  <p className="text-sm text-[var(--muted)]">You're all caught up!</p>
-                </div>
               ) : (
-                <div className="space-y-4">
-                  {pendingConnections.map((connection) => {
-                    const requester = connectionUsers.get(connection.requesterId);
-                    return (
-                      <div
-                        key={connection.id}
-                        className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4"
-                      >
-                        <div className="flex items-center justify-between flex-wrap gap-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-                              <User size={24} className="text-[var(--fg)]" />
-                            </div>
-                            <div>
-                              <p className="font-semibold text-[var(--fg)]">
-                                {requester?.name || `User ${connection.requesterId.slice(0, 8)}`}
-                              </p>
-                              <p className="text-xs text-[var(--muted)]">
-                                {requester?.email || 'No email'}
-                              </p>
-                              <p className="text-xs text-[var(--muted)] mt-1">
-                                Requested {formatTime(connection.createdAt)}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleAcceptConnection(connection.id)}
-                              className="flex items-center gap-2"
+                <div className="space-y-6">
+                  {appNotifications.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Activity</p>
+                      {appNotifications.map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          className={`w-full text-left rounded-md border p-3 text-sm ${
+                            n.read ? 'border-[var(--border)] opacity-70' : 'border-[var(--primary)] bg-[var(--primary)]/5'
+                          }`}
+                          onClick={async () => {
+                            if (!n.read) await markNotificationRead(n.id);
+                            if (n.link) {
+                              navigate(n.link);
+                              onClose();
+                            }
+                          }}
+                        >
+                          <p className="font-medium text-[var(--fg)]">{n.title}</p>
+                          <p className="text-xs text-[var(--muted)]">{n.body}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {pendingConnections.length > 0 && (
+                    <>
+                      <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Connection requests</p>
+                      <div className="space-y-4">
+                        {pendingConnections.map((connection) => {
+                          const requester = connectionUsers.get(connection.requesterId);
+                          return (
+                            <div
+                              key={connection.id}
+                              className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4"
                             >
-                              <Check size={16} />
-                              Accept
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleRejectConnection(connection.id)}
-                              className="flex items-center gap-2"
-                            >
-                              <XIcon size={16} />
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
+                              <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex items-center gap-4">
+                                  <div className="w-12 h-12 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
+                                    <User size={24} className="text-[var(--fg)]" />
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-[var(--fg)]">
+                                      {requester?.name || `User ${connection.requesterId.slice(0, 8)}`}
+                                    </p>
+                                    <p className="text-xs text-[var(--muted)]">
+                                      {requester?.email || 'No email'}
+                                    </p>
+                                    <p className="text-xs text-[var(--muted)] mt-1">
+                                      Requested {formatTime(connection.createdAt)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="success"
+                                    size="sm"
+                                    onClick={() => handleAcceptConnection(connection.id)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Check size={16} />
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={() => handleRejectConnection(connection.id)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <XIcon size={16} />
+                                    Reject
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })}
+                    </>
+                  )}
+                  {pendingConnections.length === 0 && appNotifications.length === 0 && (
+                    <div className="text-center py-12">
+                      <Bell size={64} className="mx-auto text-[var(--muted)] mb-4" />
+                      <p className="text-lg text-[var(--fg)] mb-2">You&apos;re all caught up</p>
+                      <p className="text-sm text-[var(--muted)]">No notifications right now.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -2,24 +2,19 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// TODO: Replace with your Firebase project configuration
-// Get these values from Firebase Console > Project Settings > General > Your apps
 const firebaseConfig = {
-    apiKey: "AIzaSyDXSfRWqFWEzOuWEGi6huJrDprYA6WisEk",
-    authDomain: "reconnect-8dbfa.firebaseapp.com",
-    projectId: "reconnect-8dbfa",
-    storageBucket: "reconnect-8dbfa.firebasestorage.app",
-    messagingSenderId: "1000288279740",
-    appId: "1:1000288279740:web:868891ef9b5868cd0a44b9",
-    measurementId: "G-JFWXSKT3X2"
-  };
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyDXSfRWqFWEzOuWEGi6huJrDprYA6WisEk',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'reconnect-8dbfa.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'reconnect-8dbfa',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'reconnect-8dbfa.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1000288279740',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1000288279740:web:868891ef9b5868cd0a44b9',
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-JFWXSKT3X2',
+};
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export default app;
-

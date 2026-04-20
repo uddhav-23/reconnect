@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogOut, User, BookOpen, Moon, Sun, MessageCircle, Bell, Users } from 'lucide-react';
+import { LogOut, User, BookOpen, Moon, Sun, MessageCircle, Bell, Users, Settings } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { getPendingConnections, getAllConversations, subscribeToPendingConnections, subscribeToConversations } from '../../services/firebaseFirestore';
+import { subscribeNotifications } from '../../services/platformFirestore';
+import { isAdmin } from '../../lib/roles';
 import Button from '../common/Button';
 import SocialPanel from '../common/SocialPanel';
 
@@ -15,6 +17,7 @@ const Header: React.FC = () => {
   const [socialPanelTab, setSocialPanelTab] = useState<'messages' | 'notifications' | 'connections'>('messages');
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
+  const [unreadAppNotifs, setUnreadAppNotifs] = useState(0);
   const [buttonPosition, setButtonPosition] = useState<{ top: number; right: number } | null>(null);
   const connectionsButtonRef = useRef<HTMLButtonElement>(null);
   const messagesButtonRef = useRef<HTMLButtonElement>(null);
@@ -61,6 +64,17 @@ const Header: React.FC = () => {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (!user) {
+      setUnreadAppNotifs(0);
+      return;
+    }
+    const unsub = subscribeNotifications(user.id, (items) => {
+      setUnreadAppNotifs(items.filter((n) => !n.read).length);
+    });
+    return () => unsub();
+  }, [user]);
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -100,21 +114,25 @@ const Header: React.FC = () => {
             Reconnect
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden lg:flex items-center gap-4 flex-wrap">
             <Link 
               to="/alumni" 
-              className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2"
+              className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2 text-sm"
             >
-              <User size={20} />
+              <User size={18} />
               Alumni
             </Link>
             <Link 
               to="/blogs" 
-              className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2"
+              className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors flex items-center gap-2 text-sm"
             >
-              <BookOpen size={20} />
+              <BookOpen size={18} />
               Blogs
             </Link>
+            <Link to="/events" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Events</Link>
+            <Link to="/jobs" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Jobs</Link>
+            <Link to="/mentorship" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Mentorship</Link>
+            <Link to="/groups" className="text-[var(--muted)] hover:text-[var(--fg)] text-sm">Groups</Link>
           </nav>
 
           <div className="flex items-center gap-2 md:gap-4">
@@ -143,9 +161,9 @@ const Header: React.FC = () => {
                   aria-label="Notifications"
                 >
                   <Bell size={18} />
-                  {pendingCount > 0 && (
+                  {(pendingCount + unreadAppNotifs) > 0 && (
                     <span className="absolute -top-1 -right-1 bg-[#00FF80] text-black rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold border-2 border-white">
-                      {pendingCount > 9 ? '9+' : pendingCount}
+                      {(pendingCount + unreadAppNotifs) > 9 ? '9+' : pendingCount + unreadAppNotifs}
                     </span>
                   )}
                 </button>
@@ -170,11 +188,24 @@ const Header: React.FC = () => {
             </button>
             {user ? (
               <div className="flex items-center gap-4">
+                {isAdmin(user) && (
+                  <Link to="/admin" className="text-xs text-[var(--primary)] font-medium hidden sm:inline">
+                    Admin
+                  </Link>
+                )}
                 <Link
                   to={`/dashboard/${user.role}`}
                   className="text-[var(--muted)] hover:text-[var(--fg)] transition-colors"
                 >
                   {user.name}
+                </Link>
+                <Link
+                  to="/settings"
+                  className="inline-flex items-center gap-1 text-sm text-[var(--muted)] hover:text-[var(--fg)]"
+                  title="Account settings"
+                >
+                  <Settings size={16} />
+                  <span className="hidden sm:inline">Settings</span>
                 </Link>
                 <Button
                   variant="secondary"

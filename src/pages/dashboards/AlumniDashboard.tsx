@@ -202,14 +202,24 @@ const AlumniDashboard: React.FC = () => {
               {currentAlumni.currentPosition} at {currentAlumni.currentCompany}
             </p>
           </div>
-          <Button 
-            variant="primary" 
-            onClick={() => setShowEditProfile(true)}
-            className="flex items-center gap-2"
-          >
-            <Settings size={18} />
-            Edit Profile
-          </Button>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="primary"
+              onClick={() => navigate('/settings')}
+              className="flex items-center gap-2"
+            >
+              <Settings size={18} />
+              Settings
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setShowEditProfile(true)}
+              className="flex items-center gap-2"
+            >
+              <Edit size={18} />
+              Edit profile
+            </Button>
+          </div>
         </div>
       </div>
 

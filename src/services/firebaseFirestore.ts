@@ -16,7 +16,9 @@ import {
   Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { College, Alumni, Blog, Achievement, User, Connection, Message } from '../types';
+import { mergeDisplayBlogs, findMockBlogById } from '../lib/blogDisplayMerge';
+import { getLocalBlogById, updateLocalBlogLikes, appendLocalBlogComment } from '../lib/localBlogsStorage';
+import { College, Alumni, Blog, Achievement, User, Connection, Message, Comment } from '../types';
 
 // Helper to convert Firestore timestamps
 const convertTimestamp = (timestamp: any): string => {
@@ -267,11 +269,34 @@ export const deleteAlumni = async (alumniId: string): Promise<void> => {
 
 // ==================== BLOGS ====================
 
+/** All blogs including drafts — use only in trusted admin UI */
+export const getAllBlogsAdmin = async (): Promise<Blog[]> => {
+  const querySnapshot = await getDocs(collection(db, 'blogs'));
+  const blogs: Blog[] = [];
+  for (const docSnap of querySnapshot.docs) {
+    const data = docSnap.data();
+    const authorDoc = await getDoc(doc(db, 'users', data.authorId));
+    const authorData = authorDoc.exists() ? { id: authorDoc.id, ...authorDoc.data() } : null;
+    blogs.push({
+      id: docSnap.id,
+      ...data,
+      publishedAt: convertTimestamp(data.publishedAt),
+      tags: data.tags || [],
+      likedBy: data.likedBy || [],
+      comments: data.comments || [],
+      author: authorData as Alumni,
+    } as Blog);
+  }
+  return blogs.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+};
+
 export const getBlogs = async (authorId?: string): Promise<Blog[]> => {
   try {
     const constraints: QueryConstraint[] = [];
     if (authorId) {
       constraints.push(where('authorId', '==', authorId));
+    } else {
+      constraints.push(where('status', '==', 'published'));
     }
     
     // Try with orderBy first, fallback to without if index is missing
@@ -297,8 +322,14 @@ export const getBlogs = async (authorId?: string): Promise<Blog[]> => {
           author: authorData as Alumni,
         } as Blog);
       }
-      
-      return blogs;
+
+      const visible = authorId
+        ? blogs
+        : blogs.filter(
+            (b) =>
+              (!b.status || b.status === 'published') && b.moderationStatus !== 'removed'
+          );
+      return mergeDisplayBlogs(visible, authorId);
     } catch (orderByError: any) {
       // If orderBy fails (likely missing index), try without it
       if (orderByError.code === 'failed-precondition' || orderByError.message?.includes('index')) {
@@ -306,6 +337,8 @@ export const getBlogs = async (authorId?: string): Promise<Blog[]> => {
         const constraintsWithoutOrder: QueryConstraint[] = [];
         if (authorId) {
           constraintsWithoutOrder.push(where('authorId', '==', authorId));
+        } else {
+          constraintsWithoutOrder.push(where('status', '==', 'published'));
         }
         const q = query(collection(db, 'blogs'), ...constraintsWithoutOrder);
         const querySnapshot = await getDocs(q);
@@ -327,13 +360,19 @@ export const getBlogs = async (authorId?: string): Promise<Blog[]> => {
             author: authorData as Alumni,
           } as Blog);
         }
-        
-        // Sort manually
-        return blogs.sort((a, b) => {
+
+        const visible = authorId
+          ? blogs
+          : blogs.filter(
+              (b) =>
+                (!b.status || b.status === 'published') && b.moderationStatus !== 'removed'
+            );
+        const sorted = visible.sort((a, b) => {
           const aDate = new Date(a.publishedAt).getTime();
           const bDate = new Date(b.publishedAt).getTime();
           return bDate - aDate;
         });
+        return mergeDisplayBlogs(sorted, authorId);
       }
       throw orderByError;
     }
@@ -343,6 +382,12 @@ export const getBlogs = async (authorId?: string): Promise<Blog[]> => {
 };
 
 export const getBlogById = async (blogId: string): Promise<Blog | null> => {
+  const local = getLocalBlogById(blogId);
+  if (local) return local;
+
+  const mock = findMockBlogById(blogId);
+  if (mock) return mock;
+
   try {
     const docRef = doc(db, 'blogs', blogId);
     const docSnap = await getDoc(docRef);
@@ -372,15 +417,22 @@ export const getBlogById = async (blogId: string): Promise<Blog | null> => {
 
 export const createBlog = async (blogData: Omit<Blog, 'id' | 'author'>): Promise<string> => {
   try {
-    const data = {
-      ...prepareForFirestore(blogData),
+    const status = blogData.status || 'published';
+    const data: Record<string, unknown> = {
+      ...prepareForFirestore({ ...blogData, status }),
       likes: blogData.likes || 0,
       likedBy: blogData.likedBy || [],
       comments: blogData.comments || [],
       shares: blogData.shares || 0,
+      moderationStatus: blogData.moderationStatus || 'ok',
       publishedAt: Timestamp.now(),
     };
-    
+    if (status === 'draft') {
+      data.status = 'draft';
+    } else {
+      data.status = 'published';
+    }
+
     const docRef = await addDoc(collection(db, 'blogs'), data);
     return docRef.id;
   } catch (error: any) {
@@ -405,8 +457,56 @@ export const deleteBlog = async (blogId: string): Promise<void> => {
   }
 };
 
+export const addBlogComment = async (
+  blogId: string,
+  comment: Pick<Comment, 'content' | 'authorId'>
+): Promise<void> => {
+  if (blogId.startsWith('local-')) {
+    if (!getLocalBlogById(blogId)) throw new Error('Blog not found');
+    const authorUser = await getUserById(comment.authorId);
+    const c: Comment = {
+      id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      content: comment.content,
+      authorId: comment.authorId,
+      blogId,
+      author: authorUser || ({ id: comment.authorId } as User),
+      createdAt: new Date().toISOString(),
+    };
+    appendLocalBlogComment(blogId, c);
+    return;
+  }
+
+  if (findMockBlogById(blogId)) {
+    throw new Error('Comments on featured demo posts are not saved. Publish your own post from the dashboard.');
+  }
+
+  const blogRef = doc(db, 'blogs', blogId);
+  const snap = await getDoc(blogRef);
+  if (!snap.exists()) throw new Error('Blog not found');
+  const prev = snap.data().comments || [];
+  const newComment: Comment = {
+    id: `c_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+    content: comment.content,
+    authorId: comment.authorId,
+    blogId,
+    author: {} as User,
+    createdAt: new Date().toISOString(),
+  };
+  await updateDoc(blogRef, { comments: [...prev, newComment] });
+};
+
 export const likeBlog = async (blogId: string, userId: string): Promise<void> => {
   try {
+    if (blogId.startsWith('local-')) {
+      const updated = updateLocalBlogLikes(blogId, userId);
+      if (!updated) throw new Error('Blog not found');
+      return;
+    }
+
+    if (findMockBlogById(blogId)) {
+      throw new Error('DEMO_POST');
+    }
+
     const blogRef = doc(db, 'blogs', blogId);
     const blogSnap = await getDoc(blogRef);
     
@@ -544,10 +644,10 @@ export const getUsers = async (role?: string, collegeId?: string): Promise<User[
       constraints.push(where('collegeId', '==', collegeId));
     }
     constraints.push(orderBy('createdAt', 'desc'));
-    
+
     const q = query(collection(db, 'users'), ...constraints);
     const querySnapshot = await getDocs(q);
-    
+
     return querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
       id: doc.id,
       ...doc.data(),
@@ -556,6 +656,17 @@ export const getUsers = async (role?: string, collegeId?: string): Promise<User[
   } catch (error: any) {
     throw new Error(error.message || 'Failed to fetch users');
   }
+};
+
+/** Full user list for admin dashboards — avoids composite index when unfiltered */
+export const getAllUsersAdmin = async (): Promise<User[]> => {
+  const querySnapshot = await getDocs(collection(db, 'users'));
+  const users = querySnapshot.docs.map((d: QueryDocumentSnapshot) => ({
+    id: d.id,
+    ...d.data(),
+    createdAt: convertTimestamp(d.data().createdAt),
+  })) as User[];
+  return users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 // ==================== CONNECTIONS ====================
@@ -605,21 +716,22 @@ export const createMessage = async (messageData: Omit<Message, 'id' | 'createdAt
     };
 
     const docRef = await addDoc(collection(db, 'messages'), data);
-    
-    // Create notification for the receiver
+
     try {
       await addDoc(collection(db, 'notifications'), {
         userId: messageData.receiverId,
         type: 'message',
         messageId: docRef.id,
-        senderId: messageData.senderId,
-        content: `New message from ${messageData.senderId}`,
+        actorId: messageData.senderId,
+        title: 'New message',
+        body: 'You have a new direct message.',
         read: false,
         createdAt: Timestamp.now(),
       });
     } catch (notifError) {
-      console.error('Failed to create notification:', notifError);
-      // Don't fail the message creation if notification fails
+      if (import.meta.env.DEV) {
+        console.error('Failed to create notification:', notifError);
+      }
     }
     
     return docRef.id;

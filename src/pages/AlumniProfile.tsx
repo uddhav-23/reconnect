@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  MapPin, Building2, Calendar, Github, Linkedin, ExternalLink, 
+  MapPin, Building2, Calendar, Github, Linkedin, ExternalLink,
   Mail, Phone, Award, Briefcase, GraduationCap, Users, MessageCircle,
-  Share2, Heart, Instagram
+  Share2, Heart, Instagram, BadgeCheck, Lock, Shield, Settings
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { getAlumniById, createConnection, createMessage } from '../services/firebaseFirestore';
-import { Alumni } from '../types';
+import {
+  getAlumniById,
+  createConnection,
+  createMessage,
+  getConnectionStatus,
+} from '../services/firebaseFirestore';
+import { Alumni, Connection } from '../types';
 
 const AlumniProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [alumni, setAlumni] = useState<Alumni | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [hasRequestedConnection, setHasRequestedConnection] = useState(false);
+  const [connection, setConnection] = useState<Connection | null>(null);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [messageContent, setMessageContent] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [settingsBusy, setSettingsBusy] = useState<'mentorship' | 'visibility' | null>(null);
 
   useEffect(() => {
     const loadAlumni = async () => {
@@ -52,6 +58,24 @@ const AlumniProfile: React.FC = () => {
     loadAlumni();
   }, [id]);
 
+  useEffect(() => {
+    if (!user || !id || user.id === id) {
+      setConnection(null);
+      return;
+    }
+    let cancelled = false;
+    void getConnectionStatus(user.id, id)
+      .then((c) => {
+        if (!cancelled) setConnection(c);
+      })
+      .catch(() => {
+        if (!cancelled) setConnection(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, id]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -73,7 +97,13 @@ const AlumniProfile: React.FC = () => {
     );
   }
 
-  const isConnected = user != null && alumni.connections?.includes(user.id);
+  const isOwner = user?.id === alumni.id;
+  const acceptedConnection =
+    connection?.status === 'accepted' ||
+    (!!user && (alumni.connections?.includes(user.id) ?? false));
+  const connectionPending = connection?.status === 'pending';
+  const canSeeContact =
+    isOwner || alumni.profileVisibility !== 'private' || acceptedConnection;
 
   const handleConnect = async () => {
     if (!user) {
@@ -93,7 +123,8 @@ const AlumniProfile: React.FC = () => {
         receiverId: alumni.id,
         status: 'pending',
       });
-      setHasRequestedConnection(true);
+      const c = await getConnectionStatus(user.id, alumni.id);
+      setConnection(c);
       alert('Connection request sent!');
     } catch (error: any) {
       console.error('Error creating connection:', error);
@@ -127,9 +158,42 @@ const AlumniProfile: React.FC = () => {
             
             {/* Basic Info */}
             <div className="flex-1">
-              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-[var(--fg)]">
+              {isOwner && (
+                <div className="flex justify-end mb-3">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => navigate('/settings')}
+                    className="flex items-center gap-2"
+                  >
+                    <Settings size={16} />
+                    Settings
+                  </Button>
+                </div>
+              )}
+              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-[var(--fg)] flex items-center gap-2 flex-wrap">
                 {alumni.name}
+                {alumni.verifiedAlumni && (
+                  <span className="inline-flex items-center gap-1 text-sm font-normal text-emerald-600 dark:text-emerald-400" title="Verified alumni">
+                    <BadgeCheck size={24} aria-hidden />
+                    <span className="sr-only">Verified alumni</span>
+                  </span>
+                )}
+                {alumni.profileVisibility === 'private' && (
+                  <span
+                    className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border border-[var(--border)] bg-[var(--card)] text-[var(--muted)]"
+                    title="Contact details are hidden unless you are connected"
+                  >
+                    <Lock size={14} aria-hidden />
+                    Private
+                  </span>
+                )}
               </h1>
+              {alumni.openToMentoring === false && (
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-2">
+                  Not ready for mentorship
+                </p>
+              )}
               <div className="space-y-2 mb-6">
                 <p className="text-lg font-medium text-[var(--fg)]">
                   {alumni.currentPosition}
@@ -149,31 +213,118 @@ const AlumniProfile: React.FC = () => {
               </div>
               
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3">
-                <Button 
-                  variant={isConnected ? "success" : hasRequestedConnection ? "secondary" : "secondary"} 
-                  onClick={handleConnect}
-                  disabled={isConnecting || isConnected || hasRequestedConnection}
-                  className="flex items-center gap-2"
-                >
-                  <Users size={16} />
-                  {isConnected
-                    ? 'Connected'
-                    : hasRequestedConnection
-                    ? 'Request Sent'
-                    : isConnecting
-                    ? 'Sending...'
-                    : 'Connect'}
-                </Button>
-                <Button variant="primary" onClick={handleMessage} className="flex items-center gap-2">
-                  <MessageCircle size={16} />
-                  Message
-                </Button>
-                <Button variant="success" className="flex items-center gap-2">
-                  <Share2 size={16} />
-                  Share Profile
-                </Button>
-              </div>
+              {!isOwner && (
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant={acceptedConnection ? 'success' : connectionPending ? 'secondary' : 'secondary'}
+                    onClick={handleConnect}
+                    disabled={isConnecting || acceptedConnection || connectionPending}
+                    className="flex items-center gap-2"
+                  >
+                    <Users size={16} />
+                    {acceptedConnection
+                      ? 'Connected'
+                      : connectionPending
+                        ? 'Request Sent'
+                        : isConnecting
+                          ? 'Sending...'
+                          : 'Connect'}
+                  </Button>
+                  <Button variant="primary" onClick={handleMessage} className="flex items-center gap-2">
+                    <MessageCircle size={16} />
+                    Message
+                  </Button>
+                  <Button variant="success" className="flex items-center gap-2">
+                    <Share2 size={16} />
+                    Share Profile
+                  </Button>
+                </div>
+              )}
+
+              {isOwner && alumni.role === 'alumni' && updateProfile && (
+                <Card variant="secondary" className="mt-6 p-4 max-w-lg">
+                  <h2 className="text-sm font-semibold text-[var(--fg)] mb-3 flex items-center gap-2">
+                    <Shield size={16} />
+                    Your profile settings
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-[var(--fg)]">Open to mentorship</p>
+                        <p className="text-xs text-[var(--muted)]">
+                          When off, you will not get mentorship notifications; others see &quot;Not ready for
+                          mentorship&quot;.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={alumni.openToMentoring !== false}
+                        disabled={settingsBusy === 'mentorship'}
+                        onClick={async () => {
+                          const isOpen = alumni.openToMentoring !== false;
+                          const next = !isOpen;
+                          try {
+                            setSettingsBusy('mentorship');
+                            await updateProfile({ openToMentoring: next });
+                            setAlumni((a) => (a ? { ...a, openToMentoring: next } : null));
+                          } catch (e: unknown) {
+                            alert(e instanceof Error ? e.message : 'Could not update');
+                          } finally {
+                            setSettingsBusy(null);
+                          }
+                        }}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-[var(--border)] transition-colors ${
+                          alumni.openToMentoring !== false ? 'bg-emerald-600' : 'bg-neutral-400 dark:bg-neutral-600'
+                        } disabled:opacity-50`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-6 w-6 translate-y-0 rounded-full bg-white shadow transition ${
+                            alumni.openToMentoring !== false ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-[var(--fg)]">Private profile</p>
+                        <p className="text-xs text-[var(--muted)]">
+                          Hide email, phone, address, and social links except for accepted connections.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={alumni.profileVisibility === 'private'}
+                        disabled={settingsBusy === 'visibility'}
+                        onClick={async () => {
+                          const next = alumni.profileVisibility === 'private' ? 'public' : 'private';
+                          try {
+                            setSettingsBusy('visibility');
+                            await updateProfile({
+                              profileVisibility: next,
+                            });
+                            setAlumni((a) => (a ? { ...a, profileVisibility: next } : null));
+                          } catch (e: unknown) {
+                            alert(e instanceof Error ? e.message : 'Could not update');
+                          } finally {
+                            setSettingsBusy(null);
+                          }
+                        }}
+                        className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-[var(--border)] transition-colors ${
+                          alumni.profileVisibility === 'private' ? 'bg-emerald-600' : 'bg-neutral-400 dark:bg-neutral-600'
+                        } disabled:opacity-50`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-6 w-6 translate-y-0 rounded-full bg-white shadow transition ${
+                            alumni.profileVisibility === 'private' ? 'translate-x-5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </Card>
+              )}
             </div>
           </div>
         </div>
@@ -188,24 +339,31 @@ const AlumniProfile: React.FC = () => {
               <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">
                 Contact Info
               </h2>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <Mail size={16} className="text-[var(--muted)]" />
-                  <span className="text-sm text-[var(--fg)]">{alumni.email}</span>
-                </div>
-                {alumni.phone && (
+              {!canSeeContact ? (
+                <p className="text-sm text-[var(--muted)] flex items-start gap-2">
+                  <Lock size={16} className="shrink-0 mt-0.5" />
+                  This profile is private. Connect and get accepted to see contact details.
+                </p>
+              ) : (
+                <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <Phone size={16} className="text-[var(--muted)]" />
-                    <span className="text-sm text-[var(--fg)]">{alumni.phone}</span>
+                    <Mail size={16} className="text-[var(--muted)]" />
+                    <span className="text-sm text-[var(--fg)]">{alumni.email}</span>
                   </div>
-                )}
-                {alumni.address && (
-                  <div className="flex items-start gap-3">
-                    <MapPin size={16} className="text-[var(--muted)] mt-1" />
-                    <span className="text-sm text-[var(--fg)]">{alumni.address}</span>
-                  </div>
-                )}
-              </div>
+                  {alumni.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone size={16} className="text-[var(--muted)]" />
+                      <span className="text-sm text-[var(--fg)]">{alumni.phone}</span>
+                    </div>
+                  )}
+                  {alumni.address && (
+                    <div className="flex items-start gap-3">
+                      <MapPin size={16} className="text-[var(--muted)] mt-1" />
+                      <span className="text-sm text-[var(--fg)]">{alumni.address}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
 
             {/* Social Links */}
@@ -213,6 +371,9 @@ const AlumniProfile: React.FC = () => {
               <h2 className="text-xl font-semibold text-[var(--fg)] mb-4">
                 Social Links
               </h2>
+              {!canSeeContact ? (
+                <p className="text-sm text-[var(--muted)]">Hidden — same as contact info for private profiles.</p>
+              ) : (
               <div className="space-y-3">
                 {alumni.socialLinks.linkedin && (
                   <a 
@@ -259,6 +420,7 @@ const AlumniProfile: React.FC = () => {
                   </a>
                 )}
               </div>
+              )}
             </Card>
 
             {/* Skills */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { BookOpen, Award, Settings, Edit, Plus, Eye, UserCheck, Copy, Check, Share2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { BookOpen, Award, Settings, Edit, Plus, Eye, UserCheck, Copy, Check } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import EditProfileForm from '../../components/forms/EditProfileForm';
@@ -9,8 +9,9 @@ import { getBlogs, getAchievements, createAchievement, createBlog, getUserById }
 import { User, Achievement, Blog } from '../../types';
 
 const UserDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, deleteAccount, exportUserData } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userBlogs, setUserBlogs] = useState<Blog[]>([]);
@@ -28,7 +29,16 @@ const UserDashboard: React.FC = () => {
     title: '',
     content: '',
     tags: '',
+    status: 'published' as 'draft' | 'published',
   });
+
+  useEffect(() => {
+    const state = location.state as { openBlogComposer?: boolean } | undefined;
+    if (state?.openBlogComposer) {
+      setShowCreateBlog(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -132,13 +142,14 @@ const UserDashboard: React.FC = () => {
         likedBy: [],
         comments: [],
         shares: 0,
+        status: blogData.status,
       });
 
       const updatedBlogs = await getBlogs(user.id);
       setUserBlogs(updatedBlogs);
 
       setShowCreateBlog(false);
-      setBlogData({ title: '', content: '', tags: '' });
+      setBlogData({ title: '', content: '', tags: '', status: 'published' });
       alert('Blog created successfully!');
       navigate(`/blog/${newBlogId}`);
     } catch (error: any) {
@@ -174,14 +185,6 @@ const UserDashboard: React.FC = () => {
       </div>
     );
   }
-
-  const roleColors: Record<string, string> = {
-    superadmin: 'text-[#FF0080]',
-    subadmin: 'text-[#00FF80]',
-    alumni: 'text-[#0080FF]',
-    student: 'text-[#FF8000]',
-    user: 'text-[#8000FF]',
-  };
 
   const roleLabels: Record<string, string> = {
     superadmin: 'Super Admin',
@@ -231,13 +234,21 @@ const UserDashboard: React.FC = () => {
                 {copied ? <Check size={16} /> : <Copy size={16} />}
                 {copied ? 'Copied!' : 'Copy Profile URL'}
               </Button>
-              <Button 
-                variant="primary" 
-                onClick={() => setShowEditProfile(true)}
+              <Button
+                variant="primary"
+                onClick={() => navigate('/settings')}
                 className="flex items-center gap-2"
               >
                 <Settings size={18} />
-                Edit Profile
+                Settings
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setShowEditProfile(true)}
+                className="flex items-center gap-2"
+              >
+                <Edit size={18} />
+                Edit profile
               </Button>
             </div>
           </div>
@@ -355,8 +366,13 @@ const UserDashboard: React.FC = () => {
               {userBlogs.map((blog) => (
                 <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
                   <div>
-                    <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">
+                    <h3 className="font-semibold text-sm text-[var(--fg)] mb-2 flex items-center gap-2 flex-wrap">
                       {blog.title}
+                      {blog.status === 'draft' && (
+                        <span className="text-[10px] uppercase tracking-wide bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 px-2 py-0.5 rounded">
+                          Draft
+                        </span>
+                      )}
                     </h3>
                     <p className="text-xs text-[var(--muted)] mb-3">
                       {blog.excerpt}
@@ -456,6 +472,39 @@ const UserDashboard: React.FC = () => {
                 </Button>
               </div>
             )}
+          </div>
+        </Card>
+
+        <Card variant="secondary" className="mt-8 border-red-200/50 dark:border-red-900/40">
+          <h2 className="text-xl font-semibold text-[var(--fg)] mb-2">Data &amp; account</h2>
+          <p className="text-sm text-[var(--muted)] mb-4">
+            Export your profile and content, or permanently delete your account. See also{' '}
+            <a href="/privacy" className="text-[var(--primary)] underline">
+              Privacy
+            </a>
+            .
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => exportUserData?.()}
+            >
+              Download my data (JSON)
+            </Button>
+            <Button
+              variant="danger"
+              onClick={async () => {
+                const pwd = window.prompt('Enter your password to confirm account deletion:');
+                if (!pwd) return;
+                try {
+                  await deleteAccount?.(pwd);
+                } catch (e: unknown) {
+                  alert(e instanceof Error ? e.message : 'Could not delete account');
+                }
+              }}
+            >
+              Delete account
+            </Button>
           </div>
         </Card>
       </div>
@@ -581,9 +630,22 @@ const UserDashboard: React.FC = () => {
                   placeholder="career, technology, mentorship"
                 />
               </div>
+              <div>
+                <label className="block text-[var(--fg)] font-medium mb-2 text-sm">Visibility</label>
+                <select
+                  value={blogData.status}
+                  onChange={(e) =>
+                    setBlogData({ ...blogData, status: e.target.value as 'draft' | 'published' })
+                  }
+                  className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]"
+                >
+                  <option value="published">Publish now</option>
+                  <option value="draft">Save as draft</option>
+                </select>
+              </div>
               <div className="flex gap-3">
                 <Button variant="primary" className="flex-1" onClick={handleCreateBlog}>
-                  Publish Blog
+                  {blogData.status === 'draft' ? 'Save draft' : 'Publish blog'}
                 </Button>
                 <Button variant="secondary" className="flex-1" onClick={() => setShowCreateBlog(false)}>
                   Cancel

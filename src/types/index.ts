@@ -9,6 +9,14 @@ export interface User {
   createdAt: string;
   password?: string;
   phone?: string;
+  /** Set by admins or institutional email domain match */
+  verifiedAlumni?: boolean;
+  /** Industry / sector for discovery filters */
+  industry?: string;
+  lastActiveAt?: string;
+  openToMentoring?: boolean;
+  /** When `private`, email/phone/address and social links are hidden except for accepted connections (and self). */
+  profileVisibility?: 'public' | 'private';
 }
 
 export interface Alumni extends User {
@@ -114,6 +122,9 @@ export interface Achievement {
   userId: string;
 }
 
+export type BlogStatus = 'draft' | 'published';
+export type BlogModerationStatus = 'ok' | 'flagged' | 'removed';
+
 export interface Blog {
   id: string;
   title: string;
@@ -128,6 +139,9 @@ export interface Blog {
   likedBy: string[];
   comments: Comment[];
   shares: number;
+  status?: BlogStatus;
+  moderationStatus?: BlogModerationStatus;
+  reportCount?: number;
 }
 
 export interface Comment {
@@ -166,4 +180,120 @@ export interface AuthContextType {
   isLoading: boolean;
   updateProfile: (userData: Partial<User>) => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
+  exportUserData: () => Promise<void>;
+}
+
+/** Platform: events */
+export interface PlatformEvent {
+  id: string;
+  title: string;
+  description: string;
+  startAt: string;
+  endAt?: string;
+  location: string;
+  organizerId: string;
+  attendeeIds: string[];
+  createdAt: string;
+  collegeId?: string;
+}
+
+/** Job postings */
+export interface JobApplication {
+  userId: string;
+  appliedAt: string;
+  note?: string;
+}
+
+export interface JobPosting {
+  id: string;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+  postedBy: string;
+  remote: boolean;
+  role: string;
+  applications: JobApplication[];
+  createdAt: string;
+}
+
+/** Mentorship */
+export type MentorshipStatus = 'pending' | 'accepted' | 'declined' | 'completed';
+
+export interface Mentorship {
+  id: string;
+  mentorId: string;
+  menteeId: string;
+  topic: string;
+  status: MentorshipStatus;
+  sessionDate?: string;
+  createdAt: string;
+}
+
+export interface MentorshipMessage {
+  id: string;
+  mentorshipId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
+/** Groups / chapters */
+export type GroupType = 'chapter' | 'interest' | 'batch';
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  type: GroupType;
+  members: string[];
+  adminIds: string[];
+  createdAt: string;
+  batchYear?: number;
+}
+
+export interface GroupMessage {
+  id: string;
+  groupId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
+/** In-app notifications */
+export type NotificationType =
+  | 'message'
+  | 'connection'
+  | 'comment'
+  | 'event'
+  | 'job_match'
+  | 'mentorship'
+  | 'system';
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+  link?: string;
+  /** Who triggered the notification (for security rules) */
+  actorId?: string;
+  messageId?: string;
+  mentorshipId?: string;
+  /** Related entity ids for deep links */
+  meta?: Record<string, string>;
+}
+
+export interface ContentReport {
+  id: string;
+  targetType: 'blog' | 'comment' | 'user';
+  targetId: string;
+  reporterId: string;
+  reason: string;
+  createdAt: string;
+  status: 'open' | 'reviewed' | 'dismissed';
 }

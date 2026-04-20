@@ -7,8 +7,10 @@ import {
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
-import { getBlogById } from '../services/firebaseFirestore';
+import { getBlogById, likeBlog, addBlogComment } from '../services/firebaseFirestore';
+import { createContentReport, createAppNotification } from '../services/platformFirestore';
 import { Blog } from '../types';
+import { isAdmin } from '../lib/roles';
 
 const BlogPost: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +22,19 @@ const BlogPost: React.FC = () => {
   const [blog, setBlog] = useState<Blog | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  
+  const [commentText, setCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  /** Featured demo posts (mock-blog-*) — likes/comments stay in this session only */
+  const [demoLikeFlip, setDemoLikeFlip] = useState(false);
+  const [demoSessionComments, setDemoSessionComments] = useState<{ id: string; content: string; authorName: string }[]>(
+    []
+  );
+
+  useEffect(() => {
+    setDemoLikeFlip(false);
+    setDemoSessionComments([]);
+  }, [id]);
+
   useEffect(() => {
     const loadBlog = async () => {
       if (!id) {
@@ -46,6 +60,11 @@ const BlogPost: React.FC = () => {
     loadBlog();
   }, [id]);
 
+  useEffect(() => {
+    if (!blog || !user) return;
+    setIsLiked(!!blog.likedBy?.includes(user.id));
+  }, [blog, user]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -54,7 +73,12 @@ const BlogPost: React.FC = () => {
     );
   }
 
-  if (notFound || !blog) {
+  if (
+    notFound ||
+    !blog ||
+    (blog.status === 'draft' &&
+      (!user || (user.id !== blog.authorId && !isAdmin(user))))
+  ) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <Card variant="primary" className="text-center">
@@ -67,14 +91,25 @@ const BlogPost: React.FC = () => {
     );
   }
 
-  const handleLike = () => {
-    if (!user) {
+  const handleLike = async () => {
+    if (!user || !blog) {
       setShowLoginModal(true);
       return;
     }
-    
-    setIsLiked(!isLiked);
-    // In real app, this would update the like count in backend
+    if (blog.id.startsWith('mock-blog-')) {
+      setDemoLikeFlip((f) => !f);
+      return;
+    }
+    try {
+      await likeBlog(blog.id, user.id);
+      const fresh = await getBlogById(blog.id);
+      if (fresh) {
+        setBlog(fresh);
+        setIsLiked(!!fresh.likedBy?.includes(user.id));
+      }
+    } catch (e: unknown) {
+      alert(e instanceof Error ? e.message : 'Could not update like.');
+    }
   };
 
   const handleShare = () => {
@@ -86,18 +121,78 @@ const BlogPost: React.FC = () => {
     setShowShareModal(true);
   };
 
-  const handleComment = () => {
+  const submitComment = async () => {
+    if (!user || !blog || !commentText.trim()) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (blog.id.startsWith('mock-blog-')) {
+      setDemoSessionComments((prev) => [
+        ...prev,
+        {
+          id: `demo_${Date.now()}`,
+          content: commentText.trim(),
+          authorName: user.name,
+        },
+      ]);
+      setCommentText('');
+      return;
+    }
+    setSubmittingComment(true);
+    try {
+      await addBlogComment(blog.id, { content: commentText.trim(), authorId: user.id });
+      if (blog.authorId !== user.id) {
+        await createAppNotification({
+          userId: blog.authorId,
+          type: 'comment',
+          title: 'New comment',
+          body: `${user.name} commented on your post.`,
+          actorId: user.id,
+          link: `/blog/${blog.id}`,
+        });
+      }
+      const fresh = await getBlogById(blog.id);
+      if (fresh) setBlog(fresh);
+      setCommentText('');
+    } catch {
+      alert('Failed to post comment.');
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const reportPost = async () => {
     if (!user) {
       setShowLoginModal(true);
       return;
     }
-    
-    // Scroll to comments section or open comment modal
-    alert('Comment feature coming soon!');
+    const reason = window.prompt('Describe the issue:');
+    if (!reason?.trim()) return;
+    try {
+      await createContentReport({
+        targetType: 'blog',
+        targetId: blog!.id,
+        reporterId: user.id,
+        reason: reason.trim(),
+      });
+      alert('Report submitted. Thank you.');
+    } catch {
+      alert('Could not submit report.');
+    }
   };
 
   // Get user's connections for sharing (not implemented with Firestore yet)
-  const userConnections: any[] = [];
+  const userConnections: { id: string; name: string; currentPosition?: string }[] = [];
+
+  const isDemoPost = blog.id.startsWith('mock-blog-');
+  const effectiveDemoLiked = isDemoPost ? isLiked !== demoLikeFlip : isLiked;
+  const displayLikeCount = isDemoPost
+    ? blog.likes +
+      (effectiveDemoLiked && !isLiked ? 1 : 0) +
+      (!effectiveDemoLiked && isLiked ? -1 : 0)
+    : blog.likes;
+  const displayCommentCount =
+    (blog.comments?.length || 0) + (isDemoPost ? demoSessionComments.length : 0);
 
   return (
     <div className="min-h-screen bg-white">
@@ -125,13 +220,13 @@ const BlogPost: React.FC = () => {
               </div>
               <div>
                 <h2 className="font-bold font-mono text-black uppercase">
-                  {blog.author.name}
+                  {blog.author?.name ?? 'Author'}
                 </h2>
                 <p className="font-mono text-sm text-gray-700">
-                  {blog.author.currentPosition} at {blog.author.currentCompany}
+                  {blog.author?.currentPosition} at {blog.author?.currentCompany}
                 </p>
                 <p className="font-mono text-xs text-gray-600">
-                  Class of {blog.author.graduationYear}
+                  {blog.author?.graduationYear != null && `Class of ${blog.author.graduationYear}`}
                 </p>
               </div>
             </div>
@@ -144,7 +239,7 @@ const BlogPost: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Heart size={16} />
-                <span>{blog.likes + (isLiked ? 1 : 0)} likes</span>
+                <span>{displayLikeCount} likes</span>
               </div>
               <div className="flex items-center gap-2">
                 <Share2 size={16} />
@@ -152,7 +247,7 @@ const BlogPost: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <MessageCircle size={16} />
-                <span>{blog.comments.length} comments</span>
+                <span>{displayCommentCount} comments</span>
               </div>
             </div>
           </div>
@@ -196,12 +291,12 @@ const BlogPost: React.FC = () => {
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 mb-8">
             <Button 
-              variant={isLiked ? "danger" : "secondary"} 
+              variant={effectiveDemoLiked ? "danger" : "secondary"} 
               onClick={handleLike}
               className="flex items-center gap-2"
             >
-              <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
-              {isLiked ? 'LIKED' : 'LIKE'} ({blog.likes + (isLiked ? 1 : 0)})
+              <Heart size={20} fill={effectiveDemoLiked ? "currentColor" : "none"} />
+              {effectiveDemoLiked ? 'LIKED' : 'LIKE'} ({displayLikeCount})
             </Button>
             <Button 
               variant="primary" 
@@ -211,14 +306,52 @@ const BlogPost: React.FC = () => {
               <Share2 size={20} />
               SHARE ({blog.shares})
             </Button>
-            <Button 
-              variant="success" 
-              onClick={handleComment}
-              className="flex items-center gap-2"
-            >
+            <Button variant="success" onClick={() => document.getElementById('comments')?.scrollIntoView()} className="flex items-center gap-2">
               <MessageCircle size={20} />
-              COMMENT ({blog.comments.length})
+              COMMENT ({displayCommentCount})
             </Button>
+            <Button variant="secondary" onClick={reportPost} className="flex items-center gap-2">
+              Report
+            </Button>
+          </div>
+
+          <div id="comments" className="mb-8">
+            <h3 className="font-bold font-mono text-lg uppercase text-black mb-4">Comments</h3>
+            {isDemoPost && (
+              <p className="text-xs font-mono text-gray-600 mb-3">
+                Featured demo post: new comments below are kept for this visit only.
+              </p>
+            )}
+            <div className="space-y-3 mb-4">
+              {isDemoPost &&
+                demoSessionComments.map((c) => (
+                  <div key={c.id} className="p-3 border-2 border-black bg-white font-mono text-sm">
+                    <span className="block text-xs font-bold text-gray-600 mb-1">{c.authorName}</span>
+                    {c.content}
+                  </div>
+                ))}
+              {(blog.comments || []).map((c) => (
+                <div key={c.id} className="p-3 border-2 border-black bg-white font-mono text-sm">
+                  {c.content}
+                </div>
+              ))}
+            </div>
+            {user ? (
+              <div className="flex flex-col gap-2">
+                <textarea
+                  className="w-full border-4 border-black p-3 font-mono"
+                  rows={3}
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Write a comment…"
+                />
+                <Button variant="primary" onClick={submitComment} disabled={submittingComment}>
+                  {submittingComment ? 'Posting…' : 'Post comment'}
+                </Button>
+              </div>
+            ) : (
+              <p className="font-mono text-gray-600">Log in to comment.</p>
+            )}
           </div>
 
           {/* Author Card */}

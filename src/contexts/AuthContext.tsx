@@ -2,7 +2,16 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { User, AuthContextType } from '../types';
-import { loginUser, logoutUser, updateUserProfile, changeUserPassword, getCurrentUserData, createUser } from '../services/firebaseAuth';
+import {
+  loginUser,
+  logoutUser,
+  updateUserProfile,
+  changeUserPassword,
+  getCurrentUserData,
+  createUser,
+  deleteUserAccount,
+  exportUserDataAsJson,
+} from '../services/firebaseAuth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -87,7 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const changePassword = async (oldPassword: string, newPassword: string) => {
     if (!user) return;
-    
+
     try {
       await changeUserPassword(oldPassword, newPassword);
     } catch (error: any) {
@@ -95,8 +104,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteAccount = async (password: string) => {
+    await deleteUserAccount(password);
+    setUser(null);
+  };
+
+  const exportUserData = async () => {
+    if (!user) return;
+    await exportUserDataAsJson(user.id);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, updateProfile, changePassword }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        signup,
+        logout,
+        isLoading,
+        updateProfile,
+        changePassword,
+        deleteAccount,
+        exportUserData,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

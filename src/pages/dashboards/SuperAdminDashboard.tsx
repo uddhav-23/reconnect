@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Building2, GraduationCap, TrendingUp, Plus, Settings, Edit, Phone, Mail, User as UserIcon } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -11,6 +12,7 @@ import { createUser } from '../../services/firebaseAuth';
 import CreateUserForm from '../../components/forms/CreateUserForm';
 
 const SuperAdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const [showAddCollege, setShowAddCollege] = React.useState(false);
   const [showEditProfile, setShowEditProfile] = React.useState(false);
@@ -360,7 +362,11 @@ const SuperAdminDashboard: React.FC = () => {
               <GraduationCap size={18} />
               Create Alumni
             </Button>
-            <Button variant="primary" className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              className="flex items-center gap-2"
+              onClick={() => navigate('/settings')}
+            >
               <Settings size={18} />
               Settings
             </Button>
