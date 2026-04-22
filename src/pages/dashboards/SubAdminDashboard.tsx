@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, Award, TrendingUp, Plus, UserPlus, Edit } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -12,6 +13,7 @@ import EditAlumniForm from '../../components/forms/EditAlumniForm';
 
 const SubAdminDashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showAddAlumni, setShowAddAlumni] = React.useState(false);
   const [showEditProfile, setShowEditProfile] = React.useState(false);
   const [showEditAlumni, setShowEditAlumni] = React.useState(false);
@@ -258,7 +260,7 @@ const SubAdminDashboard: React.FC = () => {
             <h2 className="text-lg font-bold text-[var(--fg)]">
               Blog management
             </h2>
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" onClick={() => navigate('/blogs')}>
               View All
             </Button>
           </div>
@@ -284,7 +286,7 @@ const SubAdminDashboard: React.FC = () => {
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" onClick={() => navigate(`/blog/${blog.id}`)}>
                       Edit
                     </Button>
                     <Button variant="danger" size="sm" onClick={() => handleDeleteBlog(blog.id, blog.title)}>
@@ -313,12 +315,12 @@ const SubAdminDashboard: React.FC = () => {
             <span>Add alumni</span>
           </Button>
 
-          <Button variant="secondary" className="flex items-center justify-center gap-2 py-5 rounded-xl">
+          <Button variant="secondary" className="flex items-center justify-center gap-2 py-5 rounded-xl" onClick={() => navigate('/blogs')}>
             <BookOpen size={22} />
             <span>Manage blogs</span>
           </Button>
 
-          <Button variant="success" className="flex items-center justify-center gap-2 py-5 rounded-xl">
+          <Button variant="success" className="flex items-center justify-center gap-2 py-5 rounded-xl" onClick={() => navigate('/alumni')}>
             <Award size={22} />
             <span>Achievements</span>
           </Button>

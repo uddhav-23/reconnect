@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Users } from 'lucide-react';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
@@ -54,9 +54,9 @@ const EventDetail: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card variant="primary" className="text-center p-8">
           <p className="text-[var(--fg)] mb-4">Event not found.</p>
-          <Link to="/events">
-            <Button variant="primary">Back to events</Button>
-          </Link>
+          <Button variant="primary" to="/events">
+            Back to events
+          </Button>
         </Card>
       </div>
     );

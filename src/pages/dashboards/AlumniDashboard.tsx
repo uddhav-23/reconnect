@@ -6,7 +6,7 @@ import Button from '../../components/common/Button';
 import PageHero from '../../components/layout/PageHero';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import { useAuth } from '../../contexts/AuthContext';
-import { getAlumniById, getBlogs, getAchievements, createAchievement, createBlog } from '../../services/firebaseFirestore';
+import { getAlumniById, getBlogs, getAchievements, createAchievement, createBlog, updateBlog } from '../../services/firebaseFirestore';
 import { Alumni, Achievement, Blog } from '../../types';
 
 const AlumniDashboard: React.FC = () => {
@@ -101,13 +101,36 @@ const AlumniDashboard: React.FC = () => {
   };
   
   const [showCreateBlog, setShowCreateBlog] = React.useState(false);
+  const [editingBlogId, setEditingBlogId] = React.useState<string | null>(null);
   const [blogData, setBlogData] = React.useState({
     title: '',
     content: '',
     tags: '',
   });
 
-  const handleCreateBlog = async () => {
+  const resetBlogModal = () => {
+    setShowCreateBlog(false);
+    setEditingBlogId(null);
+    setBlogData({ title: '', content: '', tags: '' });
+  };
+
+  const openNewBlog = () => {
+    setEditingBlogId(null);
+    setBlogData({ title: '', content: '', tags: '' });
+    setShowCreateBlog(true);
+  };
+
+  const openEditBlog = (blog: Blog) => {
+    setBlogData({
+      title: blog.title,
+      content: blog.content || '',
+      tags: (blog.tags || []).join(', '),
+    });
+    setEditingBlogId(blog.id);
+    setShowCreateBlog(true);
+  };
+
+  const handleSaveBlog = async () => {
     if (!user || !currentAlumni) return;
     if (!blogData.title || !blogData.content) {
       alert('Please enter a title and content for the blog.');
@@ -119,10 +142,28 @@ const AlumniDashboard: React.FC = () => {
         .map(tag => tag.trim())
         .filter(Boolean);
 
+      const excerpt =
+        blogData.content.length > 160 ? blogData.content.slice(0, 157) + '...' : blogData.content;
+
+      if (editingBlogId) {
+        await updateBlog(editingBlogId, {
+          title: blogData.title,
+          content: blogData.content,
+          excerpt,
+          tags: tagsArray,
+        });
+        const updatedBlogs = await getBlogs(user.id);
+        setUserBlogs(updatedBlogs);
+        resetBlogModal();
+        alert('Blog updated successfully!');
+        navigate(`/blog/${editingBlogId}`);
+        return;
+      }
+
       const newBlogId = await createBlog({
         title: blogData.title,
         content: blogData.content,
-        excerpt: blogData.content.length > 160 ? blogData.content.slice(0, 157) + '...' : blogData.content,
+        excerpt,
         coverImage: undefined,
         tags: tagsArray,
         authorId: user.id,
@@ -133,17 +174,15 @@ const AlumniDashboard: React.FC = () => {
         shares: 0,
       });
 
-      // Reload user's blogs
       const updatedBlogs = await getBlogs(user.id);
       setUserBlogs(updatedBlogs);
 
-      setShowCreateBlog(false);
-      setBlogData({ title: '', content: '', tags: '' });
+      resetBlogModal();
       alert('Blog created successfully!');
       navigate(`/blog/${newBlogId}`);
     } catch (error: any) {
-      console.error('Error creating blog:', error);
-      alert(`Failed to create blog: ${error.message}`);
+      console.error('Error saving blog:', error);
+      alert(`Failed to save blog: ${error.message}`);
     }
   };
 
@@ -313,7 +352,7 @@ const AlumniDashboard: React.FC = () => {
         <Card variant="accent" className="border-cyan-500/10 bg-gradient-to-br from-cyan-500/[0.04] to-transparent dark:from-cyan-950/15">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
             <h2 className="text-lg font-bold text-[var(--fg)]">My blogs</h2>
-            <Button variant="secondary" size="sm" onClick={() => setShowCreateBlog(true)} className="rounded-lg">
+            <Button variant="secondary" size="sm" onClick={openNewBlog} className="rounded-lg">
               <Plus size={16} />
               New
             </Button>
@@ -331,7 +370,7 @@ const AlumniDashboard: React.FC = () => {
                       <span>{blog.publishedAt}</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="success" size="sm" className="rounded-lg">
+                      <Button variant="success" size="sm" className="rounded-lg" onClick={() => openEditBlog(blog)}>
                         Edit
                       </Button>
                       <Button variant="primary" size="sm" onClick={() => navigate(`/blog/${blog.id}`)} className="rounded-lg">
@@ -347,7 +386,7 @@ const AlumniDashboard: React.FC = () => {
               <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--card)]/50 p-6 text-center">
                 <BookOpen size={36} className="mx-auto mb-3 text-cyan-600/70 dark:text-cyan-400/80" />
                 <p className="text-sm text-[var(--muted)] mb-4">No posts yet — share your story with the network.</p>
-                <Button variant="primary" onClick={() => setShowCreateBlog(true)} className="rounded-xl">
+                <Button variant="primary" onClick={openNewBlog} className="rounded-xl">
                   Write your first blog
                 </Button>
               </div>
@@ -478,9 +517,9 @@ const AlumniDashboard: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-[var(--fg)] flex items-center gap-2">
               <BookOpen size={20} />
-              Write New Blog
+              {editingBlogId ? 'Edit blog' : 'Write New Blog'}
             </h2>
-            <Button variant="danger" size="sm" onClick={() => setShowCreateBlog(false)}>
+            <Button variant="danger" size="sm" onClick={resetBlogModal}>
               <Edit size={14} />
             </Button>
           </div>
@@ -522,10 +561,10 @@ const AlumniDashboard: React.FC = () => {
               />
             </div>
             <div className="flex gap-3">
-              <Button variant="primary" className="flex-1" onClick={handleCreateBlog}>
-                Publish Blog
+              <Button variant="primary" className="flex-1" onClick={handleSaveBlog}>
+                {editingBlogId ? 'Save changes' : 'Publish Blog'}
               </Button>
-              <Button variant="secondary" className="flex-1" onClick={() => setShowCreateBlog(false)}>
+              <Button variant="secondary" className="flex-1" onClick={resetBlogModal}>
                 Cancel
               </Button>
             </div>

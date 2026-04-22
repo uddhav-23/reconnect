@@ -87,11 +87,9 @@ const MyJobApplications: React.FC = () => {
         titleGradientPart="applications"
         subtitle="Track every role you’ve applied for and see when a poster accepts or declines."
         actions={
-          <Link to="/jobs">
-            <Button variant="secondary" size="sm" className="rounded-xl h-9">
-              Browse jobs
-            </Button>
-          </Link>
+          <Button variant="secondary" size="sm" className="rounded-xl h-9" to="/jobs">
+            Browse jobs
+          </Button>
         }
       />
 
@@ -126,11 +124,9 @@ const MyJobApplications: React.FC = () => {
               <Briefcase className="mx-auto text-violet-500/70 mb-4" size={44} />
               <p className="text-[var(--fg)] font-semibold mb-2">No applications yet</p>
               <p className="text-sm text-[var(--muted)] mb-6">Explore open roles and apply with an optional note to the poster.</p>
-              <Link to="/jobs">
-                <Button variant="primary" className="rounded-xl">
-                  View jobs
-                </Button>
-              </Link>
+              <Button variant="primary" className="rounded-xl" to="/jobs">
+                View jobs
+              </Button>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -165,12 +161,10 @@ const MyJobApplications: React.FC = () => {
                           <meta.Icon size={14} />
                           {meta.label}
                         </span>
-                        <Link to={`/jobs/${job.id}`}>
-                          <Button variant="secondary" size="sm" className="rounded-xl gap-1 w-full sm:w-auto">
-                            Job detail
-                            <ChevronRight size={14} />
-                          </Button>
-                        </Link>
+                        <Button variant="secondary" size="sm" className="rounded-xl gap-1 w-full sm:w-auto" to={`/jobs/${job.id}`}>
+                          Job detail
+                          <ChevronRight size={14} />
+                        </Button>
                       </div>
                     </div>
                   </Card>

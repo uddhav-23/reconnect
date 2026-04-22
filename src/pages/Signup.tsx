@@ -188,11 +188,9 @@ const Signup: React.FC = () => {
             <p className="text-sm text-[var(--muted)] mb-4">
               Already have an account?
             </p>
-            <Link to="/login">
-              <Button variant="secondary" className="w-full">
-                Login Here
-              </Button>
-            </Link>
+            <Button variant="secondary" className="w-full" to="/login">
+              Login Here
+            </Button>
           </div>
         </Card>
         

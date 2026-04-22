@@ -153,11 +153,9 @@ const Mentorship: React.FC = () => {
               View requests, accept or decline, and open active chat threads in one place.
             </p>
           </div>
-          <Link to="/mentorship/hub">
-            <Button variant="primary" className="rounded-xl w-full sm:w-auto">
-              Open hub
-            </Button>
-          </Link>
+          <Button variant="primary" className="rounded-xl w-full sm:w-auto" to="/mentorship/hub">
+            Open hub
+          </Button>
         </Card>
 
         {user?.role === 'alumni' && (
@@ -279,11 +277,9 @@ const Mentorship: React.FC = () => {
                         </>
                       )}
                       {(m.status === 'accepted' || m.status === 'completed') && (
-                        <Link to={`/mentorship/${m.id}`}>
-                          <Button size="sm" variant="secondary" className="rounded-xl">
-                            Open chat
-                          </Button>
-                        </Link>
+                        <Button size="sm" variant="secondary" className="rounded-xl" to={`/mentorship/${m.id}`}>
+                          Open chat
+                        </Button>
                       )}
                       {m.status === 'pending' && (
                         <span className="text-xs text-[var(--muted)] self-center">Chat unlocks after acceptance</span>

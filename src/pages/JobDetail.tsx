@@ -64,9 +64,9 @@ const JobDetail: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card variant="primary" className="p-8 text-center">
           Job not found.
-          <Link to="/jobs" className="block mt-4">
-            <Button variant="primary">Back</Button>
-          </Link>
+          <Button variant="primary" className="mt-4 inline-flex" to="/jobs">
+            Back
+          </Button>
         </Card>
       </div>
     );
@@ -116,12 +116,10 @@ const JobDetail: React.FC = () => {
           <Card variant="secondary" className="p-5 border-violet-500/10">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <p className="font-semibold text-[var(--fg)]">Apply for this role</p>
-              <Link to="/jobs/my-applications">
-                <Button variant="secondary" size="sm" className="rounded-xl gap-2 w-full sm:w-auto">
-                  <Briefcase size={16} />
-                  My applications
-                </Button>
-              </Link>
+              <Button variant="secondary" size="sm" className="rounded-xl gap-2 w-full sm:w-auto" to="/jobs/my-applications">
+                <Briefcase size={16} />
+                My applications
+              </Button>
             </div>
             {applied ? (
               <div className="space-y-3">

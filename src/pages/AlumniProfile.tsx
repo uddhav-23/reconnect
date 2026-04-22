@@ -31,6 +31,29 @@ const AlumniProfile: React.FC = () => {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [settingsBusy, setSettingsBusy] = useState<'mentorship' | 'visibility' | null>(null);
 
+  const handleShareProfile = async () => {
+    const url = window.location.href;
+    const name = alumni?.name?.trim() || 'this alumni';
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({
+          title: `${name} on Reconnect`,
+          text: `View ${name}'s alumni profile`,
+          url,
+        });
+        return;
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      alert('Profile link copied to clipboard.');
+    } catch {
+      window.prompt('Copy this link:', url);
+    }
+  };
+
   useEffect(() => {
     const loadAlumni = async () => {
       if (!id) {
@@ -236,7 +259,7 @@ const AlumniProfile: React.FC = () => {
                     <MessageCircle size={16} />
                     Message
                   </Button>
-                  <Button variant="success" className="flex items-center gap-2">
+                  <Button variant="success" className="flex items-center gap-2" onClick={() => void handleShareProfile()}>
                     <Share2 size={16} />
                     Share Profile
                   </Button>

@@ -83,11 +83,9 @@ const Jobs: React.FC = () => {
         actions={
           user ? (
             <div className="flex flex-wrap gap-2 justify-end">
-              <Link to="/jobs/my-applications">
-                <Button variant="secondary" size="sm" className="rounded-xl shrink-0">
-                  My applications
-                </Button>
-              </Link>
+              <Button variant="secondary" size="sm" className="rounded-xl shrink-0" to="/jobs/my-applications">
+                My applications
+              </Button>
               {(user.role === 'alumni' || isAdmin(user)) && (
                 <Button variant="primary" className="flex items-center gap-2 shrink-0 rounded-xl" onClick={() => setShowCreate(true)}>
                   <Plus size={18} />
@@ -159,11 +157,9 @@ const Jobs: React.FC = () => {
                     </p>
                     <p className="text-sm text-[var(--muted)] mt-2 line-clamp-2">{j.description}</p>
                   </div>
-                  <Link to={`/jobs/${j.id}`}>
-                    <Button variant="primary" size="sm">
-                      View
-                    </Button>
-                  </Link>
+                  <Button variant="primary" size="sm" to={`/jobs/${j.id}`}>
+                    View
+                  </Button>
                 </div>
               </Card>
             ))}

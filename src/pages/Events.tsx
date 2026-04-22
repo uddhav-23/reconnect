@@ -126,11 +126,9 @@ const Events: React.FC = () => {
                     <Button variant="secondary" size="sm" onClick={() => handleRsvp(ev.id)}>
                       RSVP
                     </Button>
-                    <Link to={`/events/${ev.id}`}>
-                      <Button variant="primary" size="sm" className="w-full">
-                        Details
-                      </Button>
-                    </Link>
+                    <Button variant="primary" size="sm" className="w-full" to={`/events/${ev.id}`}>
+                      Details
+                    </Button>
                   </div>
                 </div>
               </Card>

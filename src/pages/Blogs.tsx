@@ -208,11 +208,9 @@ const Blogs: React.FC = () => {
                     </div>
                   </div>
 
-                  <Link to={`/blog/${blog.id}`} className="block w-full">
-                    <Button variant="primary" size="sm" className="w-full">
-                      Read Full Post
-                    </Button>
-                  </Link>
+                  <Button variant="primary" size="sm" className="w-full block" to={`/blog/${blog.id}`}>
+                    Read Full Post
+                  </Button>
                 </Card>
               ))}
             </div>

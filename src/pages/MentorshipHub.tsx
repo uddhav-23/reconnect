@@ -94,12 +94,10 @@ const MentorshipHub: React.FC = () => {
         }
         actions={
           <div className="flex flex-wrap gap-2 justify-end">
-            <Link to="/mentorship">
-              <Button variant="secondary" size="sm" className="rounded-xl gap-2 h-9">
-                <UserPlus size={16} />
-                New request
-              </Button>
-            </Link>
+            <Button variant="secondary" size="sm" className="rounded-xl gap-2 h-9" to="/mentorship">
+              <UserPlus size={16} />
+              New request
+            </Button>
           </div>
         }
       />
@@ -218,12 +216,10 @@ const MentorshipHub: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          <Link to={`/mentorship/${m.id}`}>
-                            <Button variant="primary" size="sm" className="rounded-xl gap-2 w-full sm:w-auto">
-                              Open thread
-                              <ChevronRight size={16} />
-                            </Button>
-                          </Link>
+                          <Button variant="primary" size="sm" className="rounded-xl gap-2 w-full sm:w-auto" to={`/mentorship/${m.id}`}>
+                            Open thread
+                            <ChevronRight size={16} />
+                          </Button>
                         </Card>
                       );
                     })}
@@ -260,11 +256,9 @@ const MentorshipHub: React.FC = () => {
                     <p className="text-sm text-[var(--muted)] mb-6">
                       Start from the alumni directory or send a mentorship request.
                     </p>
-                    <Link to="/mentorship">
-                      <Button variant="primary" className="rounded-xl">
-                        Go to mentorship
-                      </Button>
-                    </Link>
+                    <Button variant="primary" className="rounded-xl" to="/mentorship">
+                      Go to mentorship
+                    </Button>
                   </Card>
                 )}
             </>

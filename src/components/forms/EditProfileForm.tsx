@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { X, User, Lock, Shield, GraduationCap } from 'lucide-react';
-import Card from '../common/Card';
+import { User, Lock, Shield, GraduationCap, Share2 } from 'lucide-react';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import { useAuth } from '../../contexts/AuthContext';
+import { FormModalShell, FormSection } from './FormModalShell';
 
 interface EditProfileFormProps {
   onClose: () => void;
@@ -108,267 +108,174 @@ const EditProfileForm: React.FC<EditProfileFormProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <Card variant="primary" className="transform rotate-1">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black font-mono uppercase text-black">
-              EDIT PROFILE
-            </h2>
-            <Button variant="danger" size="sm" onClick={onClose}>
-              <X size={16} />
-            </Button>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={activeTab === 'profile' ? 'primary' : 'secondary'}
-              onClick={() => setActiveTab('profile')}
-              className="flex items-center gap-2"
-            >
-              <User size={16} />
-              PROFILE
-            </Button>
-            <Button
-              variant={activeTab === 'password' ? 'primary' : 'secondary'}
-              onClick={() => setActiveTab('password')}
-              className="flex items-center gap-2"
-            >
-              <Lock size={16} />
-              PASSWORD
-            </Button>
-          </div>
-
-          {/* Profile Tab */}
-          {activeTab === 'profile' && (
-            <form onSubmit={handleProfileSubmit} className="space-y-6">
-              {/* Basic Information */}
-              <div className="bg-[#00FF80] border-4 border-black p-4 transform -rotate-1">
-                <h3 className="font-black font-mono text-lg text-black uppercase mb-4">
-                  BASIC INFORMATION
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="FULL NAME"
-                    name="name"
-                    value={profileData.name}
-                    onChange={handleProfileChange}
-                    required
-                  />
-                  <Input
-                    label="EMAIL"
-                    name="email"
-                    type="email"
-                    value={profileData.email}
-                    onChange={handleProfileChange}
-                    required
-                  />
-                  <Input
-                    label="PHONE"
-                    name="phone"
-                    type="tel"
-                    value={profileData.phone}
-                    onChange={handleProfileChange}
-                  />
-                  <Input
-                    label="LOCATION"
-                    name="location"
-                    value={profileData.location}
-                    onChange={handleProfileChange}
-                  />
-                </div>
-              </div>
-
-              {/* Professional Information */}
-              {(user?.role === 'alumni' || user?.role === 'student') && (
-                <div className="bg-[#0080FF] border-4 border-black p-4 transform rotate-1">
-                  <h3 className="font-black font-mono text-lg text-white uppercase mb-4">
-                    PROFESSIONAL INFORMATION
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <Input
-                      label="CURRENT COMPANY"
-                      name="currentCompany"
-                      value={profileData.currentCompany}
-                      onChange={handleProfileChange}
-                    />
-                    <Input
-                      label="CURRENT POSITION"
-                      name="currentPosition"
-                      value={profileData.currentPosition}
-                      onChange={handleProfileChange}
-                    />
-                    <Input
-                      label="SKILLS (COMMA SEPARATED)"
-                      name="skills"
-                      value={profileData.skills}
-                      onChange={handleProfileChange}
-                      className="md:col-span-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-white font-bold mb-2 font-mono uppercase tracking-wide">
-                      BIO
-                    </label>
-                    <textarea
-                      name="bio"
-                      value={profileData.bio}
-                      onChange={handleProfileChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border-4 border-black shadow-[4px_4px_0px_#000000] focus:outline-none focus:shadow-[6px_6px_0px_#000000] focus:translate-x-[-2px] focus:translate-y-[-2px] transition-all duration-200 font-mono bg-white text-black"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Privacy & mentorship */}
-              <div className="bg-neutral-900 border-4 border-black p-4 transform rotate-1">
-                <h3 className="font-black font-mono text-lg text-white uppercase mb-4 flex items-center gap-2">
-                  <Shield size={18} />
-                  PRIVACY & VISIBILITY
-                </h3>
-                <label className="flex items-start gap-3 cursor-pointer text-white mb-4">
-                  <input
-                    type="checkbox"
-                    name="profilePrivate"
-                    checked={profileData.profilePrivate}
-                    onChange={(e) =>
-                      setProfileData({ ...profileData, profilePrivate: e.target.checked })
-                    }
-                    className="mt-1 h-4 w-4 shrink-0"
-                  />
-                  <span className="text-sm font-mono leading-snug">
-                    Private profile — hide email, phone, address, and social links from people you are
-                    not connected with (accepted connection).
-                  </span>
-                </label>
-                {user?.role === 'alumni' && (
-                  <label className="flex items-start gap-3 cursor-pointer text-white">
-                    <input
-                      type="checkbox"
-                      name="openToMentoring"
-                      checked={profileData.openToMentoring}
-                      onChange={(e) =>
-                        setProfileData({ ...profileData, openToMentoring: e.target.checked })
-                      }
-                      className="mt-1 h-4 w-4 shrink-0"
-                    />
-                    <span className="text-sm font-mono leading-snug flex items-center gap-2">
-                      <GraduationCap size={16} className="shrink-0" />
-                      Open to mentorship — when off, you will not receive mentorship requests and your
-                      profile shows &quot;Not ready for mentorship&quot;.
-                    </span>
-                  </label>
-                )}
-              </div>
-
-              {/* Social Links */}
-              <div className="bg-[#FF0080] border-4 border-black p-4 transform -rotate-1">
-                <h3 className="font-black font-mono text-lg text-white uppercase mb-4">
-                  SOCIAL LINKS
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="LINKEDIN"
-                    name="linkedin"
-                    type="url"
-                    value={profileData.linkedin}
-                    onChange={handleProfileChange}
-                  />
-                  <Input
-                    label="GITHUB"
-                    name="github"
-                    type="url"
-                    value={profileData.github}
-                    onChange={handleProfileChange}
-                  />
-                  <Input
-                    label="TWITTER"
-                    name="twitter"
-                    type="url"
-                    value={profileData.twitter}
-                    onChange={handleProfileChange}
-                  />
-                  <Input
-                    label="PERSONAL WEBSITE"
-                    name="personal"
-                    type="url"
-                    value={profileData.personal}
-                    onChange={handleProfileChange}
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button 
-                  type="submit" 
-                  variant="primary" 
-                  className="flex-1"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'UPDATING...' : 'UPDATE PROFILE'}
-                </Button>
-                <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-                  CANCEL
-                </Button>
-              </div>
-            </form>
-          )}
-
-          {/* Password Tab */}
-          {activeTab === 'password' && (
-            <form onSubmit={handlePasswordSubmit} className="space-y-6">
-              <div className="bg-[#FF4444] border-4 border-black p-4 transform rotate-1">
-                <h3 className="font-black font-mono text-lg text-white uppercase mb-4">
-                  CHANGE PASSWORD
-                </h3>
-                <div className="space-y-4">
-                  <Input
-                    label="CURRENT PASSWORD"
-                    name="oldPassword"
-                    type="password"
-                    value={passwordData.oldPassword}
-                    onChange={handlePasswordChange}
-                    required
-                  />
-                  <Input
-                    label="NEW PASSWORD"
-                    name="newPassword"
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={handlePasswordChange}
-                    required
-                  />
-                  <Input
-                    label="CONFIRM NEW PASSWORD"
-                    name="confirmPassword"
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={handlePasswordChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Button 
-                  type="submit" 
-                  variant="primary" 
-                  className="flex-1"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'CHANGING...' : 'CHANGE PASSWORD'}
-                </Button>
-                <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-                  CANCEL
-                </Button>
-              </div>
-            </form>
-          )}
-        </Card>
+    <FormModalShell
+      eyebrow="Account"
+      title="Edit profile"
+      subtitle={activeTab === 'profile' ? 'Update how you appear across Reconnect.' : 'Use a strong, unique password.'}
+      icon={activeTab === 'profile' ? User : Lock}
+      onClose={onClose}
+    >
+      <div className="flex gap-2 mb-6 p-1 rounded-xl border border-[var(--border)] bg-[var(--bg)]/80">
+        <button
+          type="button"
+          onClick={() => setActiveTab('profile')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === 'profile'
+              ? 'bg-[var(--primary)] text-white shadow-md'
+              : 'text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card)]'
+          }`}
+        >
+          <User size={16} />
+          Profile
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('password')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === 'password'
+              ? 'bg-[var(--primary)] text-white shadow-md'
+              : 'text-[var(--muted)] hover:text-[var(--fg)] hover:bg-[var(--card)]'
+          }`}
+        >
+          <Lock size={16} />
+          Password
+        </button>
       </div>
-    </div>
+
+      {activeTab === 'profile' && (
+        <form onSubmit={handleProfileSubmit} className="space-y-6">
+          <FormSection title="Basics" subtitle="Core identity on your profile." icon={User} tint="violet">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <Input label="Full name" name="name" value={profileData.name} onChange={handleProfileChange} required />
+              <Input label="Email" name="email" type="email" value={profileData.email} onChange={handleProfileChange} required />
+              <Input label="Phone" name="phone" type="tel" value={profileData.phone} onChange={handleProfileChange} />
+              <Input label="Location" name="location" value={profileData.location} onChange={handleProfileChange} />
+            </div>
+          </FormSection>
+
+          {(user?.role === 'alumni' || user?.role === 'student') && (
+            <FormSection title="Professional" subtitle="Shown on cards and expanded profile." icon={Shield} tint="cyan">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                <Input label="Current company" name="currentCompany" value={profileData.currentCompany} onChange={handleProfileChange} />
+                <Input label="Current role" name="currentPosition" value={profileData.currentPosition} onChange={handleProfileChange} />
+                <Input
+                  label="Skills (comma separated)"
+                  name="skills"
+                  value={profileData.skills}
+                  onChange={handleProfileChange}
+                  className="md:col-span-2"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-bio" className="block text-sm font-medium text-[var(--muted)] mb-1">
+                  Bio
+                </label>
+                <textarea
+                  id="edit-bio"
+                  name="bio"
+                  value={profileData.bio}
+                  onChange={handleProfileChange}
+                  rows={3}
+                  className="app-textarea min-h-[88px]"
+                />
+              </div>
+            </FormSection>
+          )}
+
+          <FormSection title="Privacy & visibility" subtitle="Control discovery and contact exposure." icon={Shield} tint="slate">
+            <label className="flex items-start gap-3 cursor-pointer text-[var(--fg)] mb-4">
+              <input
+                type="checkbox"
+                name="profilePrivate"
+                checked={profileData.profilePrivate}
+                onChange={(e) => setProfileData({ ...profileData, profilePrivate: e.target.checked })}
+                className="mt-1 h-4 w-4 shrink-0 rounded border-[var(--border)]"
+              />
+              <span className="text-sm leading-relaxed text-[var(--muted)]">
+                <span className="font-medium text-[var(--fg)]">Private profile</span> — hide email, phone, address, and social links
+                from people you are not connected with (accepted connection).
+              </span>
+            </label>
+            {user?.role === 'alumni' && (
+              <label className="flex items-start gap-3 cursor-pointer text-[var(--fg)]">
+                <input
+                  type="checkbox"
+                  name="openToMentoring"
+                  checked={profileData.openToMentoring}
+                  onChange={(e) => setProfileData({ ...profileData, openToMentoring: e.target.checked })}
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-[var(--border)]"
+                />
+                <span className="text-sm leading-relaxed text-[var(--muted)] flex items-start gap-2">
+                  <GraduationCap size={16} className="shrink-0 mt-0.5 text-violet-500" />
+                  <span>
+                    <span className="font-medium text-[var(--fg)]">Open to mentorship</span> — when off, you will not receive
+                    mentorship requests and your profile shows &quot;Not ready for mentorship&quot;.
+                  </span>
+                </span>
+              </label>
+            )}
+          </FormSection>
+
+          <FormSection title="Social links" subtitle="Optional networking URLs." icon={Share2} tint="rose">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              <Input label="LinkedIn" name="linkedin" type="url" value={profileData.linkedin} onChange={handleProfileChange} />
+              <Input label="GitHub" name="github" type="url" value={profileData.github} onChange={handleProfileChange} />
+              <Input label="Twitter / X" name="twitter" type="url" value={profileData.twitter} onChange={handleProfileChange} />
+              <Input label="Personal website" name="personal" type="url" value={profileData.personal} onChange={handleProfileChange} />
+            </div>
+          </FormSection>
+
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1 rounded-xl">
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-1 rounded-xl" disabled={isLoading}>
+              {isLoading ? 'Saving…' : 'Save profile'}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {activeTab === 'password' && (
+        <form onSubmit={handlePasswordSubmit} className="space-y-6">
+          <FormSection title="Change password" subtitle="Enter your current password once and your new password twice." icon={Lock} tint="rose">
+            <Input
+              label="Current password"
+              name="oldPassword"
+              type="password"
+              value={passwordData.oldPassword}
+              onChange={handlePasswordChange}
+              required
+            />
+            <Input
+              label="New password"
+              name="newPassword"
+              type="password"
+              value={passwordData.newPassword}
+              onChange={handlePasswordChange}
+              required
+            />
+            <Input
+              label="Confirm new password"
+              name="confirmPassword"
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={handlePasswordChange}
+              required
+            />
+          </FormSection>
+
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={onClose} className="flex-1 rounded-xl">
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-1 rounded-xl" disabled={isLoading}>
+              {isLoading ? 'Updating…' : 'Update password'}
+            </Button>
+          </div>
+        </form>
+      )}
+    </FormModalShell>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, GraduationCap, Send, Sparkles } from 'lucide-react';
 import Button from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
@@ -85,11 +85,9 @@ const MentorshipThread: React.FC = () => {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center p-6 gap-4">
         <p className="text-[var(--fg)] font-medium">This mentorship was not found or you don&apos;t have access.</p>
-        <Link to="/mentorship/hub">
-          <Button variant="primary" className="rounded-xl">
-            Back to mentorship hub
-          </Button>
-        </Link>
+        <Button variant="primary" className="rounded-xl" to="/mentorship/hub">
+          Back to mentorship hub
+        </Button>
       </div>
     );
   }
@@ -154,11 +152,9 @@ const MentorshipThread: React.FC = () => {
               {mentorship.status === 'declined' && 'This request was declined. Messaging is disabled.'}
             </p>
             {isMentor && mentorship.status === 'pending' && (
-              <Link to="/mentorship/hub">
-                <Button variant="primary" className="rounded-xl">
-                  Respond in hub
-                </Button>
-              </Link>
+              <Button variant="primary" className="rounded-xl" to="/mentorship/hub">
+                Respond in hub
+              </Button>
             )}
           </div>
         ) : (

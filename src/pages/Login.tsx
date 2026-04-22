@@ -101,11 +101,9 @@ const Login: React.FC = () => {
             <p className="text-sm text-[var(--muted)] mb-4">
               Don't have an account?
             </p>
-            <Link to="/signup">
-              <Button variant="secondary" className="w-full">
-                Sign Up Here
-              </Button>
-            </Link>
+            <Button variant="secondary" className="w-full" to="/signup">
+              Sign Up Here
+            </Button>
             
             <div className="mt-8 pt-6 border-t border-[var(--border)]">
               <p className="text-sm font-medium text-[var(--fg)] mb-4">
