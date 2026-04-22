@@ -109,7 +109,7 @@ const GroupDetail: React.FC = () => {
         {isMember ? (
           <form onSubmit={send} className="flex gap-2">
             <input
-              className="flex-1 px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-sm"
+              className="flex-1 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-sm"
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Message the group…"

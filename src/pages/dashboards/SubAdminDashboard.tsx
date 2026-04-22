@@ -2,6 +2,7 @@ import React from 'react';
 import { Users, BookOpen, Award, TrendingUp, Plus, UserPlus, Edit } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import PageHero from '../../components/layout/PageHero';
 import AddAlumniForm from '../../components/forms/AddAlumniForm';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import { useAuth } from '../../contexts/AuthContext';
@@ -45,10 +46,38 @@ const SubAdminDashboard: React.FC = () => {
   };
 
   const stats = [
-    { label: 'Alumni Managed', value: collegeAlumni.length, icon: Users },
-    { label: 'Active Blogs', value: collegeBlogs.length, icon: BookOpen },
-    { label: 'Total Achievements', value: '23', icon: Award },
-    { label: 'Monthly Growth', value: '8%', icon: TrendingUp },
+    {
+      label: 'Alumni managed',
+      value: collegeAlumni.length,
+      icon: Users,
+      accent:
+        'border-violet-200/80 dark:border-violet-500/25 bg-gradient-to-br from-violet-50/90 to-white dark:from-violet-950/40 dark:to-[var(--card)]',
+      iconClass: 'text-violet-600 dark:text-violet-400',
+    },
+    {
+      label: 'Active blogs',
+      value: collegeBlogs.length,
+      icon: BookOpen,
+      accent:
+        'border-cyan-200/80 dark:border-cyan-500/25 bg-gradient-to-br from-cyan-50/90 to-white dark:from-cyan-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-cyan-600 dark:text-cyan-400',
+    },
+    {
+      label: 'Achievements (demo)',
+      value: '23',
+      icon: Award,
+      accent:
+        'border-amber-200/80 dark:border-amber-500/25 bg-gradient-to-br from-amber-50/90 to-white dark:from-amber-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-amber-600 dark:text-amber-400',
+    },
+    {
+      label: 'Growth (demo)',
+      value: '8%',
+      icon: TrendingUp,
+      accent:
+        'border-rose-200/80 dark:border-rose-500/25 bg-gradient-to-br from-rose-50/90 to-white dark:from-rose-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-rose-600 dark:text-rose-400',
+    },
   ];
 
   const handleAddAlumni = async (alumniData: any) => {
@@ -141,67 +170,46 @@ const SubAdminDashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
-              College Admin Dashboard
-            </h1>
-            <p className="text-base text-[var(--muted)]">
-              Welcome back, {user?.name}
-            </p>
-          </div>
-          <div className="flex gap-3 flex-wrap">
-            <Button 
-              variant="secondary" 
-              onClick={() => setShowEditProfile(true)}
-              className="flex items-center gap-2"
-            >
+    <div className="min-h-screen max-w-6xl mx-auto px-0 sm:px-2 pb-10">
+      <PageHero
+        eyebrow="College admin"
+        title="College admin dashboard"
+        titleGradientPart="College"
+        subtitle={<>Welcome back, <span className="font-medium text-[var(--fg)]">{user?.name}</span></>}
+        actions={
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Button variant="secondary" onClick={() => setShowEditProfile(true)} className="flex items-center gap-2 rounded-xl h-9">
               <Edit size={18} />
-              Edit Profile
+              Edit profile
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={() => setShowAddAlumni(true)}
-              className="flex items-center gap-2"
-            >
+            <Button variant="primary" onClick={() => setShowAddAlumni(true)} className="flex items-center gap-2 rounded-xl h-9">
               <UserPlus size={18} />
-              Add Alumni
+              Add alumni
             </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         {stats.map((stat) => (
-          <Card 
-            key={stat.label} 
-            variant="primary" 
-            className="text-center"
+          <div
+            key={stat.label}
+            className={`relative overflow-hidden rounded-xl border p-3 sm:p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${stat.accent}`}
           >
-            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
-              <stat.icon size={28} className="text-[var(--fg)]" />
-            </div>
-            <div className="text-3xl font-semibold text-[var(--fg)] mb-1">
-              {stat.value}
-            </div>
-            <div className="text-sm text-[var(--muted)]">
-              {stat.label}
-            </div>
-          </Card>
+            <stat.icon className={`w-6 h-6 sm:w-7 sm:h-7 mb-2 ${stat.iconClass}`} strokeWidth={2} />
+            <div className="text-xl sm:text-2xl font-bold text-[var(--fg)] tabular-nums leading-none">{stat.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--muted)] mt-1 leading-snug font-medium">{stat.label}</div>
+          </div>
         ))}
       </div>
 
       {/* Management Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Alumni Management */}
-        <Card variant="secondary">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <h2 className="text-xl font-semibold text-[var(--fg)]">
-              Alumni Management
+        <Card variant="secondary" className="border-violet-500/10">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
+            <h2 className="text-lg font-bold text-[var(--fg)]">
+              Alumni management
             </h2>
             <Button variant="primary" size="sm" onClick={() => setShowAddAlumni(true)}>
               <Plus size={16} />
@@ -216,7 +224,7 @@ const SubAdminDashboard: React.FC = () => {
               <p className="text-center py-4 text-[var(--muted)]">No alumni found. Add your first alumni!</p>
             ) : (
               collegeAlumni.slice(0, 3).map((alumni) => (
-              <div key={alumni.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+              <div key={alumni.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)]/80 p-4 shadow-sm">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div>
                     <h3 className="font-semibold text-[var(--fg)] mb-1">
@@ -245,10 +253,10 @@ const SubAdminDashboard: React.FC = () => {
         </Card>
 
         {/* Blog Management */}
-        <Card variant="accent">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <h2 className="text-xl font-semibold text-[var(--fg)]">
-              Blog Management
+        <Card variant="accent" className="border-cyan-500/10">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-4">
+            <h2 className="text-lg font-bold text-[var(--fg)]">
+              Blog management
             </h2>
             <Button variant="secondary" size="sm">
               View All
@@ -262,7 +270,7 @@ const SubAdminDashboard: React.FC = () => {
               <p className="text-center py-4 text-[var(--muted)]">No blogs found.</p>
             ) : (
               collegeBlogs.map((blog) => (
-              <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+              <div key={blog.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)]/80 p-4 shadow-sm">
                 <div className="flex items-center justify-between flex-wrap gap-4">
                   <div>
                     <h3 className="font-semibold text-sm text-[var(--fg)] mb-1">
@@ -292,27 +300,27 @@ const SubAdminDashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card variant="primary">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-[var(--fg)]">
-            Quick Actions
+      <Card variant="primary" className="border-violet-500/10">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-[var(--fg)]">
+            Quick actions
           </h2>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button variant="primary" className="flex items-center justify-center gap-2 py-6" onClick={() => setShowAddAlumni(true)}>
-            <UserPlus size={24} />
-            <span>Add New Alumni</span>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Button variant="primary" className="flex items-center justify-center gap-2 py-5 rounded-xl" onClick={() => setShowAddAlumni(true)}>
+            <UserPlus size={22} />
+            <span>Add alumni</span>
           </Button>
-          
-          <Button variant="secondary" className="flex items-center justify-center gap-2 py-6">
-            <BookOpen size={24} />
-            <span>Manage Blogs</span>
+
+          <Button variant="secondary" className="flex items-center justify-center gap-2 py-5 rounded-xl">
+            <BookOpen size={22} />
+            <span>Manage blogs</span>
           </Button>
-          
-          <Button variant="success" className="flex items-center justify-center gap-2 py-6">
-            <Award size={24} />
-            <span>View Achievements</span>
+
+          <Button variant="success" className="flex items-center justify-center gap-2 py-5 rounded-xl">
+            <Award size={22} />
+            <span>Achievements</span>
           </Button>
         </div>
       </Card>

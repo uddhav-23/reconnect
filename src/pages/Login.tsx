@@ -38,14 +38,14 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
+    <div className="min-h-screen flex items-center justify-center p-4 home-hero-mesh">
       <div className="w-full max-w-md">
-        <Card variant="primary">
+        <Card variant="primary" className="border-violet-500/10">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
-              <LogIn size={28} className="text-[var(--fg)]" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 mx-auto mb-4 flex items-center justify-center shadow-lg">
+              <LogIn size={28} className="text-white" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2 text-[var(--fg)]">
               Login to Reconnect
             </h1>
             <p className="text-sm text-[var(--muted)]">
@@ -112,19 +112,19 @@ const Login: React.FC = () => {
                 Demo Credentials:
               </p>
               <div className="space-y-2 text-xs">
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                <div className="app-surface rounded-xl p-3">
                   <strong className="text-[var(--fg)]">Super Admin:</strong> <span className="text-[var(--muted)]">superadmin@university.edu</span>
                 </div>
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                <div className="app-surface rounded-xl p-3">
                   <strong className="text-[var(--fg)]">Sub Admin:</strong> <span className="text-[var(--muted)]">admin@college.edu</span>
                 </div>
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                <div className="app-surface rounded-xl p-3">
                   <strong className="text-[var(--fg)]">Alumni:</strong> <span className="text-[var(--muted)]">alumni@example.com</span>
                 </div>
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                <div className="app-surface rounded-xl p-3">
                   <strong className="text-[var(--fg)]">Student:</strong> <span className="text-[var(--muted)]">student@example.com</span>
                 </div>
-                <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-3">
+                <div className="app-surface rounded-xl p-3">
                   <strong className="text-[var(--fg)]">User:</strong> <span className="text-[var(--muted)]">user@example.com</span>
                 </div>
                 <div className="mt-3 text-xs text-[var(--muted)]">

@@ -145,13 +145,11 @@ const AlumniProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      <section className="py-20 px-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
-        <div className="container mx-auto">
-          <div className="flex flex-col lg:flex-row items-start gap-8">
-            {/* Profile Picture */}
-            <div className="w-24 h-24 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shadow-subtle">
-              <span className="text-[var(--fg)] font-semibold text-2xl">
+      <section className="home-hero-mesh border-b border-[var(--border)]/70 px-4 pb-10 pt-6 sm:pt-8">
+        <div className="container mx-auto max-w-5xl">
+          <div className="flex flex-col sm:flex-row items-start gap-6">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shrink-0">
+              <span className="text-white font-bold text-xl sm:text-2xl">
                 {(alumni.name || 'A')
                   .trim()
                   .split(/\s+/)
@@ -160,23 +158,22 @@ const AlumniProfile: React.FC = () => {
                   .join('') || '?'}
               </span>
             </div>
-            
-            {/* Basic Info */}
-            <div className="flex-1">
+
+            <div className="flex-1 min-w-0">
               {isOwner && (
-                <div className="flex justify-end mb-3">
+                <div className="flex justify-end sm:justify-start mb-2">
                   <Button
                     variant="primary"
                     size="sm"
                     onClick={() => navigate('/settings')}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-xl h-9"
                   >
                     <Settings size={16} />
                     Settings
                   </Button>
                 </div>
               )}
-              <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-4 text-[var(--fg)] flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight mb-3 text-[var(--fg)] flex items-center gap-2 flex-wrap">
                 {alumni.name || 'Alumni'}
                 {alumni.verifiedAlumni && (
                   <span className="inline-flex items-center gap-1 text-sm font-normal text-emerald-600 dark:text-emerald-400" title="Verified alumni">
@@ -466,7 +463,7 @@ const AlumniProfile: React.FC = () => {
               </h2>
               <div className="space-y-4">
                 {(alumni.education || []).map((edu) => (
-                  <div key={edu.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                  <div key={edu.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
                     <h3 className="font-semibold text-[var(--fg)] mb-1">
                       {edu.degree} in {edu.field}
                     </h3>
@@ -494,7 +491,7 @@ const AlumniProfile: React.FC = () => {
               </h2>
               <div className="space-y-4">
                 {(alumni.experience || []).map((exp) => (
-                  <div key={exp.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                  <div key={exp.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="font-semibold text-[var(--fg)]">
@@ -529,9 +526,9 @@ const AlumniProfile: React.FC = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(alumni.achievements || []).map((achievement) => (
-                  <div key={achievement.id} className="bg-neutral-100 dark:bg-neutral-800 border border-[var(--border)] rounded-md p-4">
+                  <div key={achievement.id} className="bg-[var(--card)]/90 dark:bg-neutral-900/40 border border-[var(--border)] rounded-xl p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 bg-[var(--primary)] rounded-md flex items-center justify-center flex-shrink-0">
+                      <div className="w-10 h-10 bg-[var(--primary)] rounded-xl flex items-center justify-center flex-shrink-0">
                         <Award size={18} className="text-white" />
                       </div>
                       <div className="flex-1">
@@ -564,7 +561,7 @@ const AlumniProfile: React.FC = () => {
                 </h2>
                 <div className="space-y-4">
                   {(alumni.blogs || []).slice(0, 3).map((blog) => (
-                    <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                    <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
                       <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">
                         {blog.title}
                       </h3>
@@ -643,7 +640,7 @@ const AlumniProfile: React.FC = () => {
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
               rows={4}
-              className="w-full px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-colors duration-200 mb-4"
+              className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 transition-colors duration-200 mb-4"
               placeholder="Write your message..."
             />
             <div className="flex gap-3">

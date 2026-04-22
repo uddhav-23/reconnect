@@ -62,15 +62,15 @@ const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
+    <div className="min-h-screen flex items-center justify-center p-4 home-hero-mesh">
       <div className="w-full max-w-md">
-        <Card variant="primary">
+        <Card variant="primary" className="border-violet-500/10">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
-              <UserPlus size={28} className="text-[var(--fg)]" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-600 mx-auto mb-4 flex items-center justify-center shadow-lg">
+              <UserPlus size={28} className="text-white" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
-              Sign Up for Reconnect
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2 text-[var(--fg)]">
+              Sign up for Reconnect
             </h1>
             <p className="text-sm text-[var(--muted)]">
               Join our alumni network
@@ -133,7 +133,7 @@ const Signup: React.FC = () => {
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)] transition-colors"
+                className="app-input"
                 required
               >
                 <option value="user">General User</option>

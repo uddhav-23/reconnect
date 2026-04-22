@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Users, Plus } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import PageHero from '../components/layout/PageHero';
 import { useAuth } from '../contexts/AuthContext';
 import { isAdmin } from '../lib/roles';
 import {
@@ -76,22 +77,22 @@ const Events: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <section className="py-16 px-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
-        <div className="container mx-auto max-w-5xl flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-semibold text-[var(--fg)] mb-2">Events</h1>
-            <p className="text-[var(--muted)]">Upcoming reunions, webinars, and meetups.</p>
-          </div>
-          {user && isAdmin(user) && (
-            <Button variant="primary" onClick={() => setShowCreate(true)} className="flex items-center gap-2 shrink-0">
+      <PageHero
+        eyebrow="Gatherings"
+        title="Events"
+        titleGradientPart="Events"
+        subtitle="Reunions, webinars, and chapter meetups — RSVP and add sessions if you’re an admin."
+        actions={
+          user && isAdmin(user) ? (
+            <Button variant="primary" onClick={() => setShowCreate(true)} className="flex items-center gap-2 shrink-0 rounded-xl">
               <Plus size={18} />
               New event
             </Button>
-          )}
-        </div>
-      </section>
+          ) : undefined
+        }
+      />
 
-      <section className="py-12 px-4 container mx-auto max-w-5xl">
+      <section className="py-10 sm:py-12 px-4 container mx-auto max-w-5xl">
         {loading ? (
           <p className="text-[var(--muted)] text-center py-12">Loading events…</p>
         ) : events.length === 0 ? (
@@ -139,43 +140,43 @@ const Events: React.FC = () => {
       </section>
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <Card variant="primary" className="w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold text-[var(--fg)] mb-4">Create event</h2>
+            <h2 className="text-lg font-bold text-[var(--fg)] mb-4">Create event</h2>
             <form onSubmit={handleCreate} className="space-y-3">
               <input
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 placeholder="Title"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               />
               <textarea
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] min-h-[100px]"
+                className="app-textarea min-h-[100px]"
                 placeholder="Description"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               />
               <input
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 placeholder="Location"
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
               />
-              <label className="block text-xs text-[var(--muted)]">Start (local)</label>
+              <label className="block text-xs font-medium text-[var(--muted)]">Start (local)</label>
               <input
                 required
                 type="datetime-local"
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 value={form.startAt}
                 onChange={(e) => setForm((f) => ({ ...f, startAt: e.target.value }))}
               />
-              <label className="block text-xs text-[var(--muted)]">End (optional)</label>
+              <label className="block text-xs font-medium text-[var(--muted)]">End (optional)</label>
               <input
                 type="datetime-local"
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 value={form.endAt}
                 onChange={(e) => setForm((f) => ({ ...f, endAt: e.target.value }))}
               />

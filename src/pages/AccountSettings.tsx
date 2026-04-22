@@ -13,10 +13,11 @@ import {
 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import PageHero from '../components/layout/PageHero';
 import EditProfileForm from '../components/forms/EditProfileForm';
 import { useAuth } from '../contexts/AuthContext';
 import { getAllConnections, getUserById } from '../services/firebaseFirestore';
-import { getNotifications } from '../services/platformFirestore';
+import { getNotifications, markAllNotificationsRead } from '../services/platformFirestore';
 import { resetPassword } from '../services/firebaseAuth';
 import type { AppNotification, Connection, User } from '../types';
 
@@ -31,7 +32,7 @@ const nav: { id: Section; label: string; icon: React.ElementType }[] = [
 ];
 
 const linkSecondaryBtn =
-  'inline-flex items-center justify-center h-9 px-3 text-sm rounded-md font-medium transition-colors border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] hover:bg-neutral-100 dark:hover:bg-neutral-700 shadow-subtle';
+  'inline-flex items-center justify-center h-9 px-3 text-sm rounded-xl font-semibold transition-colors border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] hover:border-violet-400/40 hover:bg-neutral-100 dark:hover:bg-neutral-800 shadow-sm';
 
 function formatWhen(iso: string): string {
   try {
@@ -64,6 +65,7 @@ const AccountSettings: React.FC = () => {
   const [pw, setPw] = useState({ old: '', next: '', confirm: '' });
   const [pwBusy, setPwBusy] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
+  const [markAllActivityBusy, setMarkAllActivityBusy] = useState(false);
 
   const [privacyBusy, setPrivacyBusy] = useState<'mentorship' | 'visibility' | null>(null);
 
@@ -134,39 +136,55 @@ const AccountSettings: React.FC = () => {
 
   const isAlumni = user.role === 'alumni';
 
+  const unreadActivityCount = notifications.filter((n) => !n.read).length;
+
+  const handleMarkAllActivityRead = async () => {
+    if (!user || unreadActivityCount === 0 || markAllActivityBusy) return;
+    setMarkAllActivityBusy(true);
+    try {
+      await markAllNotificationsRead(user.id);
+      await loadActivity();
+    } catch (e: unknown) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : 'Could not mark all as read');
+    } finally {
+      setMarkAllActivityBusy(false);
+    }
+  };
+
   return (
     <>
-      <div className="min-h-screen bg-[var(--bg)]">
-        <div className="border-b border-[var(--border)] bg-[var(--card)]/80 backdrop-blur">
-          <div className="container mx-auto max-w-6xl px-4 py-4 flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Button variant="secondary" size="sm" onClick={() => navigate(-1)} className="gap-2">
+      <div className="min-h-screen max-w-6xl mx-auto">
+        <PageHero
+          eyebrow="Account"
+          title="Settings"
+          titleGradientPart="Settings"
+          subtitle="Connections, privacy, password, and profile."
+          actions={
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button variant="secondary" size="sm" onClick={() => navigate(-1)} className="gap-2 rounded-xl h-9">
                 <ArrowLeft size={16} />
                 Back
               </Button>
-              <div>
-                <h1 className="text-xl md:text-2xl font-semibold text-[var(--fg)]">Settings</h1>
-                <p className="text-sm text-[var(--muted)]">Account, connections, and privacy</p>
-              </div>
+              <Link to={dashboardPath} className={linkSecondaryBtn}>
+                Dashboard
+              </Link>
             </div>
-            <Link to={dashboardPath} className={linkSecondaryBtn}>
-              Dashboard
-            </Link>
-          </div>
-        </div>
+          }
+        />
 
-        <div className="container mx-auto max-w-6xl px-4 py-8">
-          <div className="flex flex-col lg:flex-row gap-8">
-            <nav className="lg:w-56 shrink-0 flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0">
+        <div className="container mx-auto max-w-6xl px-4 py-6 sm:py-8">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            <nav className="lg:w-56 shrink-0 flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 -mx-1 px-1">
               {nav.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => goSection(id)}
-                  className={`flex items-center gap-2 rounded-md px-3 py-2.5 text-left text-sm font-medium whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold whitespace-nowrap transition-all ${
                     section === id
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'text-[var(--muted)] hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-[var(--fg)]'
+                      ? 'bg-[var(--primary)] text-white shadow-md'
+                      : 'text-[var(--muted)] border border-transparent hover:border-[var(--border)] hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-[var(--fg)]'
                   }`}
                 >
                   <Icon size={18} />
@@ -177,8 +195,8 @@ const AccountSettings: React.FC = () => {
 
             <div className="flex-1 min-w-0 space-y-6">
               {section === 'activity' && (
-                <Card variant="primary" className="p-6">
-                  <h2 className="text-lg font-semibold text-[var(--fg)] mb-1">Recent activity</h2>
+                <Card variant="primary" className="p-5 sm:p-6 border-violet-500/10">
+                  <h2 className="text-lg font-bold text-[var(--fg)] mb-1">Recent activity</h2>
                   <p className="text-sm text-[var(--muted)] mb-4">
                     Notifications and updates from messages, connections, mentorship, and more.
                   </p>
@@ -190,7 +208,26 @@ const AccountSettings: React.FC = () => {
                   ) : notifications.length === 0 ? (
                     <p className="text-sm text-[var(--muted)] py-6">No activity yet.</p>
                   ) : (
-                    <ul className="divide-y divide-[var(--border)] border border-[var(--border)] rounded-md overflow-hidden">
+                    <>
+                      {unreadActivityCount > 0 && (
+                        <div className="rounded-xl border border-violet-500/25 bg-violet-50/80 dark:bg-violet-950/30 px-4 py-3 mb-4 flex flex-wrap items-center justify-between gap-3">
+                          <p className="text-sm text-[var(--muted)]">
+                            <span className="font-semibold text-[var(--fg)]">{unreadActivityCount}</span>{' '}
+                            unread notification{unreadActivityCount === 1 ? '' : 's'}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={markAllActivityBusy}
+                            onClick={() => void handleMarkAllActivityRead()}
+                            className="rounded-xl shrink-0"
+                          >
+                            {markAllActivityBusy ? 'Marking…' : 'Mark all as read'}
+                          </Button>
+                        </div>
+                      )}
+                    <ul className="divide-y divide-[var(--border)] border border-[var(--border)] rounded-xl overflow-hidden">
                       {notifications.map((n) => (
                         <li
                           key={n.id}
@@ -212,6 +249,7 @@ const AccountSettings: React.FC = () => {
                         </li>
                       ))}
                     </ul>
+                    </>
                   )}
                 </Card>
               )}
@@ -237,10 +275,10 @@ const AccountSettings: React.FC = () => {
                       {connections.map(({ peer, peerId, connection }) => (
                         <li
                           key={connection.id}
-                          className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                          className="flex items-center justify-between gap-4 flex-wrap p-3 rounded-xl border border-[var(--border)] bg-[var(--card)]"
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shrink-0 font-semibold text-[var(--fg)]">
+                            <div className="w-10 h-10 rounded-xl bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shrink-0 font-semibold text-[var(--fg)]">
                               {(peer?.name || '?')
                                 .split(' ')
                                 .map((x) => x[0])
@@ -427,7 +465,7 @@ const AccountSettings: React.FC = () => {
                           autoComplete="current-password"
                           value={pw.old}
                           onChange={(e) => setPw({ ...pw, old: e.target.value })}
-                          className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
                           required
                         />
                       </div>
@@ -440,7 +478,7 @@ const AccountSettings: React.FC = () => {
                           autoComplete="new-password"
                           value={pw.next}
                           onChange={(e) => setPw({ ...pw, next: e.target.value })}
-                          className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
                           required
                           minLength={6}
                         />
@@ -454,7 +492,7 @@ const AccountSettings: React.FC = () => {
                           autoComplete="new-password"
                           value={pw.confirm}
                           onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
-                          className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                          className="w-full px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
                           required
                         />
                       </div>

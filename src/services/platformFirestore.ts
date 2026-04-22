@@ -19,6 +19,8 @@ import { db } from '../config/firebase';
 import type {
   PlatformEvent,
   JobPosting,
+  JobApplication,
+  JobApplicationStatus,
   Mentorship,
   MentorshipMessage,
   Group,
@@ -42,6 +44,17 @@ const convertTs = (t: unknown): string => {
   if (typeof t === 'string') return t;
   return new Date().toISOString();
 };
+
+function normalizeJobApplications(raw: unknown): JobApplication[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((a) => {
+    const x = a as JobApplication;
+    return {
+      ...x,
+      status: (x.status ?? 'pending') as JobApplicationStatus,
+    };
+  });
+}
 
 const prep = (data: Record<string, unknown>) => {
   const o: Record<string, unknown> = {};
@@ -78,7 +91,7 @@ export async function getHomePageData(): Promise<HomePageData> {
   const blogs = await getBlogs();
   const published = blogs.filter((b) => !b.status || b.status === 'published');
   const alumniList = await getAlumni();
-  const shuffled = [...alumniList].sort(() => Math.random() - 0.5).slice(0, 3);
+  const shuffled = [...alumniList].sort(() => Math.random() - 0.5).slice(0, 12);
 
   let collegeCount = 0;
   try {
@@ -94,7 +107,7 @@ export async function getHomePageData(): Promise<HomePageData> {
     activeUserCount,
     collegeCount,
     featuredAlumni: shuffled,
-    recentBlogs: published.slice(0, 3),
+    recentBlogs: published.slice(0, 9),
   };
 }
 
@@ -167,7 +180,7 @@ export async function getJobs(): Promise<JobPosting[]> {
     return {
       id: d.id,
       ...data,
-      applications: data.applications || [],
+      applications: normalizeJobApplications(data.applications),
       createdAt: convertTs(data.createdAt),
       remote: !!data.remote,
     } as JobPosting;
@@ -181,7 +194,7 @@ export async function getJobById(id: string): Promise<JobPosting | null> {
   return {
     id: s.id,
     ...data,
-    applications: data.applications || [],
+    applications: normalizeJobApplications(data.applications),
     createdAt: convertTs(data.createdAt),
     remote: !!data.remote,
   } as JobPosting;
@@ -205,15 +218,80 @@ export async function applyToJob(jobId: string, userId: string, note?: string): 
   const ref = doc(db, 'jobs', jobId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error('Job not found');
-  const apps = snap.data().applications || [];
-  if (apps.some((a: { userId: string }) => a.userId === userId)) return;
+  const apps = normalizeJobApplications(snap.data().applications);
+  if (apps.some((a) => a.userId === userId)) return;
   await updateDoc(ref, {
     applications: arrayUnion({
       userId,
       appliedAt: new Date().toISOString(),
       note,
+      status: 'pending' as const,
     }),
   });
+}
+
+export async function updateJobApplicationStatus(
+  jobId: string,
+  viewerId: string,
+  applicantUserId: string,
+  status: 'accepted' | 'rejected'
+): Promise<void> {
+  const job = await getJobById(jobId);
+  if (!job) throw new Error('Job not found');
+  if (job.postedBy !== viewerId) throw new Error('Only the job poster can update applications');
+
+  const apps = normalizeJobApplications(job.applications);
+  const idx = apps.findIndex((a) => a.userId === applicantUserId);
+  if (idx === -1) throw new Error('Applicant not found on this job');
+
+  const next = apps.map((a, i) =>
+    i === idx ? { ...a, status } : a
+  );
+
+  await updateDoc(doc(db, 'jobs', jobId), {
+    applications: next,
+  });
+
+  try {
+    await addDoc(collection(db, 'notifications'), {
+      userId: applicantUserId,
+      type: 'job_application',
+      title: status === 'accepted' ? 'Application accepted' : 'Application update',
+      body:
+        status === 'accepted'
+          ? `Your application for "${job.title}" was accepted.`
+          : `Your application for "${job.title}" was not selected.`,
+      actorId: viewerId,
+      jobId,
+      read: false,
+      createdAt: Timestamp.now(),
+      link: `/jobs/my-applications`,
+    });
+  } catch (e) {
+    if (import.meta.env.DEV) {
+      console.error('Job application notification failed:', e);
+    }
+  }
+}
+
+/** Jobs the user has applied to (may be expensive at scale — replace with indexed query later). */
+export async function listJobsAppliedByUser(userId: string): Promise<{ job: JobPosting; application: JobApplication }[]> {
+  const jobs = await getJobs();
+  const rows: { job: JobPosting; application: JobApplication }[] = [];
+  for (const job of jobs) {
+    const app = job.applications?.find((a) => a.userId === userId);
+    if (app) {
+      rows.push({
+        job,
+        application: { ...app, status: app.status ?? 'pending' },
+      });
+    }
+  }
+  rows.sort(
+    (a, b) =>
+      new Date(b.application.appliedAt).getTime() - new Date(a.application.appliedAt).getTime()
+  );
+  return rows;
 }
 
 // --- Mentorship ---
@@ -249,7 +327,7 @@ export async function createMentorshipRequest(data: {
       mentorshipId: ref.id,
       read: false,
       createdAt: Timestamp.now(),
-      link: '/mentorship',
+      link: '/mentorship/hub',
     });
   } catch (e) {
     if (import.meta.env.DEV) {
@@ -290,7 +368,7 @@ export async function updateMentorshipStatus(
         mentorshipId: id,
         read: false,
         createdAt: Timestamp.now(),
-        link: '/mentorship',
+        link: status === 'accepted' ? `/mentorship/${id}` : '/mentorship/hub',
       });
     }
   } catch (e) {
@@ -298,6 +376,18 @@ export async function updateMentorshipStatus(
       console.error('Mentorship response notification failed:', e);
     }
   }
+}
+
+export async function getMentorshipById(id: string): Promise<Mentorship | null> {
+  const s = await getDoc(doc(db, 'mentorships', id));
+  if (!s.exists()) return null;
+  const data = s.data();
+  return {
+    id: s.id,
+    ...data,
+    createdAt: convertTs(data.createdAt),
+    sessionDate: data.sessionDate ? convertTs(data.sessionDate) : undefined,
+  } as Mentorship;
 }
 
 export async function listMentorshipsForUser(userId: string): Promise<Mentorship[]> {
@@ -324,6 +414,18 @@ export async function addMentorshipMessage(
   senderId: string,
   content: string
 ): Promise<string> {
+  const m = await getDoc(doc(db, 'mentorships', mentorshipId));
+  if (!m.exists()) throw new Error('Mentorship not found');
+  const st = (m.data() as { status?: string }).status;
+  if (st !== 'accepted' && st !== 'completed') {
+    throw new Error('Messaging is available only after the mentorship request is accepted.');
+  }
+  const mentorId = (m.data() as { mentorId: string }).mentorId;
+  const menteeId = (m.data() as { menteeId: string }).menteeId;
+  if (senderId !== mentorId && senderId !== menteeId) {
+    throw new Error('Not authorized');
+  }
+
   const ref = await addDoc(collection(doc(db, 'mentorships', mentorshipId), 'messages'), {
     mentorshipId,
     senderId,
@@ -471,8 +573,10 @@ export async function markNotificationRead(notificationId: string): Promise<void
 
 export async function markAllNotificationsRead(userId: string): Promise<void> {
   const items = await getNotifications(userId);
+  const unread = items.filter((n) => !n.read);
+  if (unread.length === 0) return;
   const batch = writeBatch(db);
-  items.filter((n) => !n.read).forEach((n) => {
+  unread.forEach((n) => {
     batch.update(doc(db, 'notifications', n.id), { read: true });
   });
   await batch.commit();

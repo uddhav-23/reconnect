@@ -1,11 +1,12 @@
 import React from 'react';
 import Card from '../components/common/Card';
+import PageHero from '../components/layout/PageHero';
 
 const Terms: React.FC = () => (
-  <div className="min-h-screen py-16 px-4">
-    <div className="container mx-auto max-w-3xl">
-      <h1 className="text-4xl font-semibold text-[var(--fg)] mb-8">Terms of use</h1>
-      <Card variant="primary" className="p-8 space-y-6 text-[var(--fg)] text-sm leading-relaxed">
+  <div className="min-h-screen">
+    <PageHero eyebrow="Legal" title="Terms of use" titleGradientPart="Terms" subtitle="Rules for using Reconnect." />
+    <div className="container mx-auto max-w-3xl px-4 pb-16 -mt-2">
+      <Card variant="primary" className="p-6 sm:p-8 space-y-6 text-[var(--fg)] text-sm leading-relaxed border-violet-500/10">
         <p className="text-[var(--muted)]">Last updated: April 2026</p>
         <section>
           <h2 className="font-semibold text-lg mb-2">Acceptance</h2>

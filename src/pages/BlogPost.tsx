@@ -67,8 +67,8 @@ const BlogPost: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <p className="font-mono text-gray-600">Loading blog...</p>
+      <div className="min-h-[50vh] flex items-center justify-center px-4">
+        <p className="text-[var(--muted)] font-medium">Loading post…</p>
       </div>
     );
   }
@@ -80,11 +80,12 @@ const BlogPost: React.FC = () => {
       (!user || (user.id !== blog.authorId && !isAdmin(user))))
   ) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Card variant="primary" className="text-center">
-          <h1 className="text-2xl font-black font-mono text-black mb-4">BLOG NOT FOUND</h1>
+      <div className="min-h-[50vh] flex items-center justify-center px-4 py-12">
+        <Card variant="primary" className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-[var(--fg)] mb-3">Post not found</h1>
+          <p className="text-sm text-[var(--muted)] mb-6">This story may have been removed or is still a draft.</p>
           <Button variant="primary" onClick={() => navigate('/blogs')}>
-            BACK TO BLOGS
+            Back to blogs
           </Button>
         </Card>
       </div>
@@ -195,151 +196,137 @@ const BlogPost: React.FC = () => {
     (blog.comments?.length || 0) + (isDemoPost ? demoSessionComments.length : 0);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <section className="bg-[#FF0080] border-b-4 border-black py-8 px-4">
-        <div className="container mx-auto">
-          <Button 
-            variant="secondary" 
-            onClick={() => navigate('/blogs')}
-            className="mb-6 flex items-center gap-2"
-          >
+    <div className="min-h-screen">
+      <section className="home-hero-mesh border-b border-[var(--border)]/70 py-8 md:py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <Button variant="secondary" onClick={() => navigate('/blogs')} className="mb-6 flex items-center gap-2 rounded-xl">
             <ArrowLeft size={16} />
-            BACK TO BLOGS
+            Back to blogs
           </Button>
-          
-          <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-6xl font-black font-mono uppercase text-white mb-6 transform -skew-y-1 leading-tight">
-              {blog.title}
-            </h1>
-            
-            {/* Author Info */}
-            <div className="flex items-center gap-4 mb-6 p-4 bg-[#00FF80] border-4 border-black transform rotate-1">
-              <div className="w-16 h-16 bg-[#0080FF] border-4 border-black flex items-center justify-center">
-                <User size={24} className="text-white" />
-              </div>
-              <div>
-                <h2 className="font-bold font-mono text-black uppercase">
-                  {blog.author?.name ?? 'Author'}
-                </h2>
-                <p className="font-mono text-sm text-gray-700">
-                  {blog.author?.currentPosition} at {blog.author?.currentCompany}
-                </p>
-                <p className="font-mono text-xs text-gray-600">
-                  {blog.author?.graduationYear != null && `Class of ${blog.author.graduationYear}`}
-                </p>
-              </div>
+
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-[var(--fg)] leading-tight mb-6">
+            {blog.title}
+          </h1>
+
+          <div className="app-surface p-4 sm:p-5 mb-6 flex items-center gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0 shadow-inner">
+              <User size={26} className="text-white" />
             </div>
-            
-            {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-6 text-white font-mono">
-              <div className="flex items-center gap-2">
-                <Calendar size={16} />
-                <span>{new Date(blog.publishedAt).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Heart size={16} />
-                <span>{displayLikeCount} likes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Share2 size={16} />
-                <span>{blog.shares} shares</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MessageCircle size={16} />
-                <span>{displayCommentCount} comments</span>
-              </div>
+            <div className="min-w-0">
+              <h2 className="font-bold text-[var(--fg)]">{blog.author?.name ?? 'Author'}</h2>
+              <p className="text-sm text-[var(--muted)]">
+                {[blog.author?.currentPosition, blog.author?.currentCompany].filter(Boolean).join(' · ')}
+              </p>
+              {blog.author?.graduationYear != null && (
+                <p className="text-xs text-[var(--muted)] mt-1">Class of {blog.author.graduationYear}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--muted)]">
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-violet-500 shrink-0" />
+              <span>{new Date(blog.publishedAt).toLocaleDateString()}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Heart size={16} className="text-rose-500 shrink-0" />
+              <span>{displayLikeCount} likes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Share2 size={16} className="text-cyan-600 shrink-0" />
+              <span>{blog.shares} shares</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MessageCircle size={16} className="text-teal-600 shrink-0" />
+              <span>{displayCommentCount} comments</span>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 sm:py-10">
         <div className="max-w-4xl mx-auto">
-          {/* Tags */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Tag size={20} className="text-gray-500" />
-              <span className="font-bold font-mono text-lg uppercase text-black">
-                Tags:
-              </span>
+          {blog.tags.length > 0 && (
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3 text-[var(--fg)] font-semibold">
+                <Tag size={18} className="text-violet-500" />
+                Tags
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {blog.tags.map((tag) => (
+                  <span key={tag} className="app-tag">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-3">
-              {blog.tags.map((tag) => (
-                <span 
-                  key={tag}
-                  className="bg-[#0080FF] text-white px-4 py-2 border-4 border-black font-mono font-bold uppercase transform -rotate-1"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
 
-          {/* Content */}
-          <Card variant="primary" className="mb-8 transform rotate-1">
-            <div className="prose prose-lg max-w-none">
-              <div 
-                className="font-mono text-gray-800 leading-relaxed"
-                dangerouslySetInnerHTML={{ 
-                  __html: blog.content.replace(/\n/g, '<br>').replace(/#{1,6}\s/g, '<strong>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          <Card variant="primary" className="mb-8">
+            <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:text-[var(--fg)] prose-p:text-[var(--fg)]">
+              <div
+                className="text-[var(--fg)] leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: blog.content
+                    .replace(/\n/g, '<br>')
+                    .replace(/#{1,6}\s/g, '<strong>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'),
                 }}
               />
             </div>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 mb-8">
-            <Button 
-              variant={effectiveDemoLiked ? "danger" : "secondary"} 
+          <div className="flex flex-wrap gap-3 mb-10">
+            <Button
+              variant={effectiveDemoLiked ? 'danger' : 'secondary'}
               onClick={handleLike}
               className="flex items-center gap-2"
             >
-              <Heart size={20} fill={effectiveDemoLiked ? "currentColor" : "none"} />
-              {effectiveDemoLiked ? 'LIKED' : 'LIKE'} ({displayLikeCount})
+              <Heart size={20} fill={effectiveDemoLiked ? 'currentColor' : 'none'} />
+              {effectiveDemoLiked ? 'Liked' : 'Like'} ({displayLikeCount})
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleShare}
+            <Button variant="primary" onClick={handleShare} className="flex items-center gap-2">
+              <Share2 size={20} />
+              Share ({blog.shares})
+            </Button>
+            <Button
+              variant="success"
+              onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
               className="flex items-center gap-2"
             >
-              <Share2 size={20} />
-              SHARE ({blog.shares})
-            </Button>
-            <Button variant="success" onClick={() => document.getElementById('comments')?.scrollIntoView()} className="flex items-center gap-2">
               <MessageCircle size={20} />
-              COMMENT ({displayCommentCount})
+              Comment ({displayCommentCount})
             </Button>
             <Button variant="secondary" onClick={reportPost} className="flex items-center gap-2">
               Report
             </Button>
           </div>
 
-          <div id="comments" className="mb-8">
-            <h3 className="font-bold font-mono text-lg uppercase text-black mb-4">Comments</h3>
+          <div id="comments" className="mb-10">
+            <h3 className="text-lg font-bold text-[var(--fg)] mb-4">Comments</h3>
             {isDemoPost && (
-              <p className="text-xs font-mono text-gray-600 mb-3">
-                Featured demo post: new comments below are kept for this visit only.
+              <p className="text-xs text-[var(--muted)] mb-3">
+                Demo post: comments you add here are kept for this visit only.
               </p>
             )}
             <div className="space-y-3 mb-4">
               {isDemoPost &&
                 demoSessionComments.map((c) => (
-                  <div key={c.id} className="p-3 border-2 border-black bg-white font-mono text-sm">
-                    <span className="block text-xs font-bold text-gray-600 mb-1">{c.authorName}</span>
+                  <div key={c.id} className="app-surface p-4 text-sm text-[var(--fg)]">
+                    <span className="block text-xs font-semibold text-[var(--muted)] mb-1">{c.authorName}</span>
                     {c.content}
                   </div>
                 ))}
               {(blog.comments || []).map((c) => (
-                <div key={c.id} className="p-3 border-2 border-black bg-white font-mono text-sm">
+                <div key={c.id} className="app-surface p-4 text-sm text-[var(--fg)]">
                   {c.content}
                 </div>
               ))}
             </div>
             {user ? (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 <textarea
-                  className="w-full border-4 border-black p-3 font-mono"
+                  className="app-textarea"
                   rows={3}
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
@@ -350,36 +337,25 @@ const BlogPost: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <p className="font-mono text-gray-600">Log in to comment.</p>
+              <p className="text-sm text-[var(--muted)]">Log in to comment.</p>
             )}
           </div>
 
-          {/* Author Card */}
-          <Card variant="secondary" className="transform -rotate-1">
-            <h3 className="font-black font-mono text-xl text-black uppercase mb-4">
-              ABOUT THE AUTHOR
-            </h3>
-            <div className="flex items-start gap-6">
-              <div className="w-20 h-20 bg-[#FF0080] border-4 border-black flex items-center justify-center transform rotate-12">
+          <Card variant="secondary" className="border-violet-500/15 bg-gradient-to-br from-violet-500/[0.06] to-cyan-500/[0.04] dark:from-violet-900/20 dark:to-cyan-900/10">
+            <h3 className="text-lg font-bold text-[var(--fg)] mb-4">About the author</h3>
+            <div className="flex flex-col sm:flex-row items-start gap-5">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-violet-600 flex items-center justify-center shrink-0">
                 <User size={32} className="text-white" />
               </div>
-              <div className="flex-1">
-                <h4 className="font-bold font-mono text-black uppercase mb-2">
-                  {blog.author.name}
-                </h4>
-                <p className="font-mono text-sm text-gray-700 mb-3">
-                  {blog.author.bio}
-                </p>
-                <div className="flex gap-3">
-                  <Button 
-                    variant="primary" 
-                    size="sm"
-                    onClick={() => navigate(`/alumni/${blog.author.id}`)}
-                  >
-                    VIEW PROFILE
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-[var(--fg)] mb-2">{blog.author.name}</h4>
+                <p className="text-sm text-[var(--muted)] mb-4 leading-relaxed">{blog.author.bio}</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="primary" size="sm" onClick={() => navigate(`/alumni/${blog.author.id}`)}>
+                    View profile
                   </Button>
-                  <Button variant="success" size="sm">
-                    CONNECT
+                  <Button variant="secondary" size="sm" onClick={() => navigate('/messages')}>
+                    Messages
                   </Button>
                 </div>
               </div>
@@ -390,101 +366,83 @@ const BlogPost: React.FC = () => {
 
       {/* Share Modal */}
       {showShareModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card variant="primary" className="max-w-md w-full max-h-96 overflow-y-auto">
-            <h2 className="font-black font-mono text-xl text-black uppercase mb-4">
-              SHARE WITH CONNECTIONS
-            </h2>
-            
+            <h2 className="text-lg font-bold text-[var(--fg)] mb-4">Share with connections</h2>
+
             {userConnections.length > 0 ? (
               <div className="space-y-3 mb-6">
                 {userConnections.map((connection) => (
-                  <div key={connection.id} className="flex items-center justify-between p-3 bg-[#00FF80] border-2 border-black">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#FF0080] border-2 border-black flex items-center justify-center">
+                  <div
+                    key={connection.id}
+                    className="flex items-center justify-between p-3 app-surface border-[var(--border)]"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shrink-0">
                         <Users size={16} className="text-white" />
                       </div>
-                      <div>
-                        <p className="font-bold font-mono text-black text-sm">
-                          {connection.name}
-                        </p>
-                        <p className="font-mono text-xs text-gray-700">
-                          {connection.currentPosition}
-                        </p>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-[var(--fg)] text-sm truncate">{connection.name}</p>
+                        <p className="text-xs text-[var(--muted)] truncate">{connection.currentPosition}</p>
                       </div>
                     </div>
                     <Button variant="primary" size="sm">
-                      SHARE
+                      Share
                     </Button>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-8">
-                <Users size={48} className="mx-auto mb-4 text-gray-400" />
-                <p className="font-mono text-gray-600 mb-4">
-                  No connections yet. Connect with alumni to share posts!
+                <Users size={48} className="mx-auto mb-4 text-[var(--muted)]" />
+                <p className="text-sm text-[var(--muted)] mb-4">
+                  No connections yet. Find alumni to share posts with.
                 </p>
-                <Button 
+                <Button
                   variant="primary"
                   onClick={() => {
                     setShowShareModal(false);
                     navigate('/alumni');
                   }}
                 >
-                  FIND ALUMNI
+                  Browse alumni
                 </Button>
               </div>
             )}
-            
-            <div className="flex gap-4">
-              <Button 
-                variant="secondary" 
-                onClick={() => setShowShareModal(false)}
-                className="flex-1"
-              >
-                CLOSE
+
+            <div className="flex gap-3 flex-wrap">
+              <Button variant="secondary" onClick={() => setShowShareModal(false)} className="flex-1 min-w-[120px]">
+                Close
               </Button>
-              <Button 
-                variant="success" 
+              <Button
+                variant="success"
                 onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
+                  void navigator.clipboard.writeText(window.location.href);
                   alert('Link copied to clipboard!');
                   setShowShareModal(false);
                 }}
-                className="flex-1"
+                className="flex-1 min-w-[120px]"
               >
-                COPY LINK
+                Copy link
               </Button>
             </div>
           </Card>
         </div>
       )}
 
-      {/* Login Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card variant="primary" className="max-w-md w-full">
-            <h2 className="font-black font-mono text-xl text-black uppercase mb-4">
-              LOGIN REQUIRED
-            </h2>
-            <p className="font-mono text-gray-700 mb-6">
-              You need to be logged in to like, share, and comment on posts.
+            <h2 className="text-lg font-bold text-[var(--fg)] mb-3">Log in required</h2>
+            <p className="text-sm text-[var(--muted)] mb-6 leading-relaxed">
+              Sign in to like, share, and comment on posts.
             </p>
-            <div className="flex gap-4">
-              <Button 
-                variant="primary" 
-                onClick={() => navigate('/login')}
-                className="flex-1"
-              >
-                LOGIN
+            <div className="flex gap-3 flex-wrap">
+              <Button variant="primary" onClick={() => navigate('/login')} className="flex-1 min-w-[120px]">
+                Log in
               </Button>
-              <Button 
-                variant="secondary" 
-                onClick={() => setShowLoginModal(false)}
-                className="flex-1"
-              >
-                CANCEL
+              <Button variant="secondary" onClick={() => setShowLoginModal(false)} className="flex-1 min-w-[120px]">
+                Cancel
               </Button>
             </div>
           </Card>

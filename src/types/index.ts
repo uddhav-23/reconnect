@@ -199,10 +199,14 @@ export interface PlatformEvent {
 }
 
 /** Job postings */
+export type JobApplicationStatus = 'pending' | 'accepted' | 'rejected';
+
 export interface JobApplication {
   userId: string;
   appliedAt: string;
   note?: string;
+  /** Defaults to pending when missing (legacy applications). */
+  status?: JobApplicationStatus;
 }
 
 export interface JobPosting {
@@ -268,6 +272,7 @@ export type NotificationType =
   | 'comment'
   | 'event'
   | 'job_match'
+  | 'job_application'
   | 'mentorship'
   | 'system';
 
@@ -286,6 +291,7 @@ export interface AppNotification {
   mentorshipId?: string;
   /** Related entity ids for deep links */
   meta?: Record<string, string>;
+  jobId?: string;
 }
 
 export interface ContentReport {

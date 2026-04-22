@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { UserPlus, MessageSquare, Loader2 } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import PageHero from '../components/layout/PageHero';
 import { useAuth } from '../contexts/AuthContext';
 import type { Mentorship as MentorshipRow } from '../types';
 import { listMentorshipsForUser, createMentorshipRequest, updateMentorshipStatus } from '../services/platformFirestore';
@@ -128,21 +129,37 @@ const Mentorship: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <section className="py-16 px-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
-        <div className="container mx-auto max-w-4xl">
-          <h1 className="text-4xl font-semibold text-[var(--fg)] mb-2">Mentorship</h1>
-          <p className="text-[var(--muted)]">
+      <PageHero
+        eyebrow="Guidance"
+        title="Mentorship"
+        titleGradientPart="Mentor"
+        subtitle={
+          <>
             Find someone in the{' '}
-            <Link to="/alumni" className="text-[var(--primary)] underline">
+            <Link to="/alumni" className="text-violet-600 dark:text-violet-400 font-medium hover:underline">
               alumni directory
             </Link>
             , open their profile, then paste the ID from the URL:{' '}
-            <code className="text-sm bg-neutral-200 dark:bg-neutral-800 px-1 rounded">/alumni/<strong>THIS_PART</strong></code>
-          </p>
-        </div>
-      </section>
+            <code className="text-xs sm:text-sm app-tag font-mono">/alumni/THIS_ID</code>
+          </>
+        }
+      />
 
       <section className="py-10 px-4 container mx-auto max-w-4xl space-y-8">
+        <Card variant="primary" className="p-5 border-violet-500/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="font-bold text-[var(--fg)]">Mentorship hub</p>
+            <p className="text-sm text-[var(--muted)]">
+              View requests, accept or decline, and open active chat threads in one place.
+            </p>
+          </div>
+          <Link to="/mentorship/hub">
+            <Button variant="primary" className="rounded-xl w-full sm:w-auto">
+              Open hub
+            </Button>
+          </Link>
+        </Card>
+
         {user?.role === 'alumni' && (
           <Card variant="secondary" className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -187,7 +204,7 @@ const Mentorship: React.FC = () => {
                   id="mentor-id"
                   required
                   disabled={submitting}
-                  className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-sm disabled:opacity-60"
+                  className="app-input disabled:opacity-60"
                   placeholder="e.g. Kj8s… (from /alumni/…)"
                   value={mentorId}
                   onChange={(e) => setMentorId(e.target.value)}
@@ -202,7 +219,7 @@ const Mentorship: React.FC = () => {
                   id="topic"
                   required
                   disabled={submitting}
-                  className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-sm disabled:opacity-60"
+                  className="app-input disabled:opacity-60"
                   placeholder="What you would like help with"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
@@ -225,12 +242,13 @@ const Mentorship: React.FC = () => {
         <div>
           <h2 className="text-lg font-semibold text-[var(--fg)] mb-4 flex items-center gap-2">
             <MessageSquare size={20} />
-            <Link to="/mentorship/requests" className="hover:underline">
+            <Link to="/mentorship/hub" className="hover:underline">
               My mentorships
             </Link>
           </h2>
           <p className="text-sm text-[var(--muted)] mb-4">
-            Pending requests appear here for both mentor and mentee. Mentors: use Accept / Decline, then Open to chat.
+            For a full list, use the <Link to="/mentorship/hub" className="text-violet-600 dark:text-violet-400 font-medium hover:underline">mentorship hub</Link>. Below is a quick
+            summary. Mentors: use Accept / Decline, then open the thread only when the request is accepted.
           </p>
           {loading ? (
             <p className="text-[var(--muted)]">Loading…</p>
@@ -260,11 +278,16 @@ const Mentorship: React.FC = () => {
                           </Button>
                         </>
                       )}
-                      <Link to={`/mentorship/${m.id}`}>
-                        <Button size="sm" variant="secondary">
-                          Open chat
-                        </Button>
-                      </Link>
+                      {(m.status === 'accepted' || m.status === 'completed') && (
+                        <Link to={`/mentorship/${m.id}`}>
+                          <Button size="sm" variant="secondary" className="rounded-xl">
+                            Open chat
+                          </Button>
+                        </Link>
+                      )}
+                      {m.status === 'pending' && (
+                        <span className="text-xs text-[var(--muted)] self-center">Chat unlocks after acceptance</span>
+                      )}
                     </div>
                   </Card>
                 );

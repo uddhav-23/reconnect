@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Building2, Plus, Filter } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import PageHero from '../components/layout/PageHero';
 import { useAuth } from '../contexts/AuthContext';
 import { isAdmin } from '../lib/roles';
 import { getJobs, createJob, JobPosting } from '../services/platformFirestore';
@@ -74,52 +75,61 @@ const Jobs: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <section className="py-16 px-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
-        <div className="container mx-auto max-w-5xl flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-semibold text-[var(--fg)] mb-2">Jobs & internships</h1>
-            <p className="text-[var(--muted)]">Posted by alumni. Filter by company, location, or remote.</p>
-          </div>
-          {user && (user.role === 'alumni' || isAdmin(user)) && (
-            <Button variant="primary" className="flex items-center gap-2 shrink-0" onClick={() => setShowCreate(true)}>
-              <Plus size={18} />
-              Post a role
-            </Button>
-          )}
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Careers"
+        title="Jobs & internships"
+        titleGradientPart="Jobs"
+        subtitle="Roles posted by alumni — filter by company, location, or remote-friendly listings."
+        actions={
+          user ? (
+            <div className="flex flex-wrap gap-2 justify-end">
+              <Link to="/jobs/my-applications">
+                <Button variant="secondary" size="sm" className="rounded-xl shrink-0">
+                  My applications
+                </Button>
+              </Link>
+              {(user.role === 'alumni' || isAdmin(user)) && (
+                <Button variant="primary" className="flex items-center gap-2 shrink-0 rounded-xl" onClick={() => setShowCreate(true)}>
+                  <Plus size={18} />
+                  Post a role
+                </Button>
+              )}
+            </div>
+          ) : undefined
+        }
+      />
 
       <section className="py-8 px-4 container mx-auto max-w-5xl">
-        <Card variant="secondary" className="p-4 mb-8">
-          <div className="flex items-center gap-2 text-sm font-medium text-[var(--fg)] mb-3">
-            <Filter size={16} />
+        <div className="app-filter-panel">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[var(--fg)] mb-3">
+            <Filter size={16} className="text-cyan-500" />
             Filters
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <input
-              className="px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-sm"
+              className="app-input"
               placeholder="Company"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
             />
             <input
-              className="px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-sm"
+              className="app-input"
               placeholder="Location"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
             <input
-              className="px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-sm"
+              className="app-input"
               placeholder="Role / title"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             />
-            <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-[var(--fg)] cursor-pointer app-surface px-3 py-2.5">
               <input type="checkbox" checked={remoteOnly} onChange={(e) => setRemoteOnly(e.target.checked)} />
               Remote only
             </label>
           </div>
-        </Card>
+        </div>
 
         {loading ? (
           <p className="text-center text-[var(--muted)] py-12">Loading…</p>
@@ -162,41 +172,41 @@ const Jobs: React.FC = () => {
       </section>
 
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <Card variant="primary" className="w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4 text-[var(--fg)]">Post a job</h2>
+            <h2 className="text-lg font-bold mb-4 text-[var(--fg)]">Post a job</h2>
             <form onSubmit={submitJob} className="space-y-3">
               <input
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 placeholder="Job title"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               />
               <input
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 placeholder="Company"
                 value={form.company}
                 onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
               />
               <input
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 placeholder="Location"
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
               />
               <input
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)]"
+                className="app-input"
                 placeholder="Role type (e.g. Software Engineer)"
                 value={form.role}
                 onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
               />
               <textarea
                 required
-                className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] min-h-[120px]"
+                className="app-textarea"
                 placeholder="Description"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}

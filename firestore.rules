@@ -37,6 +37,14 @@ service cloud.firestore {
         && (m.mentorId == request.auth.uid || m.menteeId == request.auth.uid);
     }
 
+    /** Mentorship thread: only after mentor accepts (or completed). */
+    function mentorshipChatAllowed(mentorshipId) {
+      let m = get(/databases/$(database)/documents/mentorships/$(mentorshipId)).data;
+      return request.auth != null
+        && (m.mentorId == request.auth.uid || m.menteeId == request.auth.uid)
+        && (m.status == 'accepted' || m.status == 'completed');
+    }
+
     function isGroupMember(groupId) {
       let g = get(/databases/$(database)/documents/groups/$(groupId)).data;
       return request.auth != null && request.auth.uid in g.members;
@@ -123,6 +131,11 @@ service cloud.firestore {
                 && request.resource.data.actorId == request.auth.uid
               )
             ))
+        || (request.resource.data.type == 'job_application'
+            && request.resource.data.keys().hasAll(['userId','actorId','jobId'])
+            && request.resource.data.actorId == request.auth.uid
+            && exists(/databases/$(database)/documents/jobs/$(request.resource.data.jobId))
+            && get(/databases/$(database)/documents/jobs/$(request.resource.data.jobId)).data.postedBy == request.auth.uid)
       );
       allow update: if request.auth != null
         && resource.data.userId == request.auth.uid;
@@ -160,8 +173,9 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /messages/{msgId} {
-        allow read, create: if request.auth != null
-          && isMentorshipParticipant(mentorshipId);
+        allow read: if mentorshipChatAllowed(mentorshipId);
+        allow create: if mentorshipChatAllowed(mentorshipId)
+          && request.resource.data.senderId == request.auth.uid;
         allow update, delete: if false;
       }
     }

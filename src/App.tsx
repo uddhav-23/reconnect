@@ -18,7 +18,9 @@ import EventDetail from './pages/EventDetail';
 import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
 import Mentorship from './pages/Mentorship';
+import MentorshipHub from './pages/MentorshipHub';
 import MentorshipThread from './pages/MentorshipThread';
+import MyJobApplications from './pages/MyJobApplications';
 import Groups from './pages/Groups';
 import GroupDetail from './pages/GroupDetail';
 import Privacy from './pages/Privacy';
@@ -41,8 +43,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: strin
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0080FF] flex items-center justify-center">
-        <div className="text-white font-black font-mono text-4xl animate-pulse">LOADING...</div>
+      <div className="min-h-screen bg-[var(--bg)] home-hero-mesh flex items-center justify-center px-4">
+        <p className="text-lg font-semibold text-[var(--muted)] animate-pulse">Loading…</p>
       </div>
     );
   }
@@ -104,9 +106,25 @@ function App() {
                       <Route path="/events" element={<Events />} />
                       <Route path="/events/:id" element={<EventDetail />} />
                       <Route path="/jobs" element={<Jobs />} />
+                      <Route
+                        path="/jobs/my-applications"
+                        element={
+                          <ProtectedRoute>
+                            <MyJobApplications />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route path="/jobs/:id" element={<JobDetail />} />
                       <Route path="/mentorship" element={<Mentorship />} />
                       <Route path="/mentorship/requests" element={<Mentorship />} />
+                      <Route
+                        path="/mentorship/hub"
+                        element={
+                          <ProtectedRoute>
+                            <MentorshipHub />
+                          </ProtectedRoute>
+                        }
+                      />
                       <Route path="/mentorship/:id" element={<MentorshipThread />} />
                       <Route path="/groups" element={<Groups />} />
                       <Route path="/groups/:id" element={<GroupDetail />} />

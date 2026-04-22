@@ -12,6 +12,8 @@ import {
   Settings,
   Menu,
   X,
+  Sparkles,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -311,6 +313,27 @@ const Header: React.FC = () => {
                   {item.label}
                 </Link>
               ))}
+              {user && (
+                <>
+                  <div className="border-t border-[var(--border)] my-2 pt-2" />
+                  <Link
+                    to="/mentorship/hub"
+                    className="flex items-center gap-2 px-3 py-3 rounded-md text-base text-[var(--fg)] hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    onClick={() => setMobileNavOpen(false)}
+                  >
+                    <Sparkles size={20} className="shrink-0 text-violet-500" />
+                    Mentorship hub
+                  </Link>
+                  <Link
+                    to="/jobs/my-applications"
+                    className="flex items-center gap-2 px-3 py-3 rounded-md text-base text-[var(--fg)] hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    onClick={() => setMobileNavOpen(false)}
+                  >
+                    <Briefcase size={20} className="shrink-0 text-violet-500" />
+                    My job applications
+                  </Link>
+                </>
+              )}
             </nav>
           </>
         )}

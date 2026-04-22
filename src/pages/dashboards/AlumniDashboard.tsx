@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, Award, Settings, Edit, Plus, Eye, UserCheck } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import PageHero from '../../components/layout/PageHero';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAlumniById, getBlogs, getAchievements, createAchievement, createBlog } from '../../services/firebaseFirestore';
@@ -179,175 +180,161 @@ const AlumniDashboard: React.FC = () => {
   }
 
   const stats = [
-    { label: 'Profile Views', value: '124', icon: Eye },
-    { label: 'Published Blogs', value: userBlogs.length, icon: BookOpen },
-    { label: 'Achievements', value: userAchievements.length, icon: Award },
-    { label: 'Network Connections', value: (currentAlumni.connections || []).length, icon: UserCheck },
+    {
+      label: 'Profile views',
+      value: '124',
+      icon: Eye,
+      accent:
+        'border-violet-200/80 dark:border-violet-500/25 bg-gradient-to-br from-violet-50/90 to-white dark:from-violet-950/40 dark:to-[var(--card)]',
+      iconClass: 'text-violet-600 dark:text-violet-400',
+    },
+    {
+      label: 'Published blogs',
+      value: String(userBlogs.length),
+      icon: BookOpen,
+      accent:
+        'border-cyan-200/80 dark:border-cyan-500/25 bg-gradient-to-br from-cyan-50/90 to-white dark:from-cyan-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-cyan-600 dark:text-cyan-400',
+    },
+    {
+      label: 'Achievements',
+      value: String(userAchievements.length),
+      icon: Award,
+      accent:
+        'border-amber-200/80 dark:border-amber-500/25 bg-gradient-to-br from-amber-50/90 to-white dark:from-amber-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-amber-600 dark:text-amber-400',
+    },
+    {
+      label: 'Connections',
+      value: String((currentAlumni.connections || []).length),
+      icon: UserCheck,
+      accent:
+        'border-rose-200/80 dark:border-rose-500/25 bg-gradient-to-br from-rose-50/90 to-white dark:from-rose-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-rose-600 dark:text-rose-400',
+    },
   ];
 
   return (
     <>
-    <div className="min-h-screen p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
-              Alumni Dashboard
-            </h1>
-            <p className="text-base text-[var(--muted)]">
-              Welcome back, {currentAlumni.name}
-            </p>
-            <p className="text-sm text-[var(--muted)] mt-1">
+    <div className="min-h-screen max-w-6xl mx-auto px-0 sm:px-2 pb-10">
+      <PageHero
+        eyebrow="Your space"
+        title="Alumni dashboard"
+        titleGradientPart="Alumni"
+        subtitle={
+          <>
+            <span className="text-[var(--fg)] font-medium">{currentAlumni.name}</span>
+            <span className="block mt-1 text-sm">
               {currentAlumni.currentPosition} at {currentAlumni.currentCompany}
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="primary"
-              onClick={() => navigate('/settings')}
-              className="flex items-center gap-2"
-            >
+            </span>
+          </>
+        }
+        actions={
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Button variant="primary" onClick={() => navigate('/settings')} className="flex items-center gap-2 rounded-xl h-9 px-3">
               <Settings size={18} />
               Settings
             </Button>
-            <Button
-              variant="secondary"
-              onClick={() => setShowEditProfile(true)}
-              className="flex items-center gap-2"
-            >
+            <Button variant="secondary" onClick={() => setShowEditProfile(true)} className="flex items-center gap-2 rounded-xl h-9 px-3">
               <Edit size={18} />
-              Edit profile
+              Edit
             </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         {stats.map((stat) => (
-          <Card 
-            key={stat.label} 
-            variant="primary" 
-            className="text-center"
+          <div
+            key={stat.label}
+            className={`relative overflow-hidden rounded-xl border p-3 sm:p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${stat.accent}`}
           >
-            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
-              <stat.icon size={28} className="text-[var(--fg)]" />
-            </div>
-            <div className="text-3xl font-semibold text-[var(--fg)] mb-1">
-              {stat.value}
-            </div>
-            <div className="text-sm text-[var(--muted)]">
-              {stat.label}
-            </div>
-          </Card>
+            <stat.icon className={`w-6 h-6 sm:w-7 sm:h-7 mb-2 ${stat.iconClass}`} strokeWidth={2} />
+            <div className="text-xl sm:text-2xl font-bold text-[var(--fg)] tabular-nums leading-none">{stat.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--muted)] mt-1 leading-snug font-medium">{stat.label}</div>
+          </div>
         ))}
       </div>
 
-      {/* Profile & Content Management */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Profile Summary */}
-        <Card variant="secondary">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <h2 className="text-xl font-semibold text-[var(--fg)]">
-              Profile Summary
-            </h2>
-            <Button variant="primary" size="sm" onClick={() => setShowEditProfile(true)}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6 mb-8">
+        <Card variant="secondary" className="border-violet-500/10 bg-gradient-to-br from-violet-500/[0.03] to-transparent dark:from-violet-950/20">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+            <h2 className="text-lg font-bold text-[var(--fg)]">Profile summary</h2>
+            <Button variant="primary" size="sm" onClick={() => setShowEditProfile(true)} className="rounded-lg">
               <Edit size={16} />
               Edit
             </Button>
           </div>
-          
+
           <div className="space-y-4">
-            <div className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center shadow-subtle">
-                  <span className="text-[var(--fg)] font-semibold text-xl">
-                    {currentAlumni.name.split(' ').map(n => n[0]).join('')}
+            <div className="app-surface p-4 border-[var(--border)]">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-md shrink-0">
+                  <span className="text-white font-bold text-sm sm:text-base">
+                    {currentAlumni.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)}
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[var(--fg)] mb-1">
-                    {currentAlumni.name}
-                  </h3>
-                  <p className="text-sm text-[var(--muted)]">
-                    {currentAlumni.degree}
-                  </p>
-                  <p className="text-sm text-[var(--muted)] mt-1">
-                    Class of {currentAlumni.graduationYear}
-                  </p>
+                  <h3 className="font-semibold text-[var(--fg)] mb-1">{currentAlumni.name}</h3>
+                  <p className="text-sm text-[var(--muted)]">{currentAlumni.degree}</p>
+                  <p className="text-sm text-[var(--muted)] mt-1">Class of {currentAlumni.graduationYear}</p>
                 </div>
               </div>
             </div>
-            
-            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-4">
-              <p className="text-sm text-[var(--fg)]">
-                <strong className="font-medium">Bio:</strong> {currentAlumni.bio}
-              </p>
-            </div>
-            
-            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-4">
-              <p className="text-sm text-[var(--fg)] mb-2 font-medium">
-                Skills:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {currentAlumni.skills.map((skill) => (
-                  <span 
-                    key={skill}
-                    className="bg-[var(--card)] text-[var(--fg)] px-2 py-1 border border-[var(--border)] text-xs rounded"
-                  >
-                    {skill}
-                  </span>
-                ))}
+
+            {currentAlumni.bio && (
+              <div className="rounded-xl border border-[var(--border)] bg-neutral-50/80 dark:bg-neutral-800/50 p-3 sm:p-4">
+                <p className="text-sm text-[var(--fg)] leading-relaxed">
+                  <span className="font-semibold text-[var(--muted)]">Bio · </span>
+                  {currentAlumni.bio}
+                </p>
               </div>
-            </div>
+            )}
+
+            {currentAlumni.skills.length > 0 && (
+              <div className="rounded-xl border border-[var(--border)] bg-neutral-50/80 dark:bg-neutral-800/50 p-3 sm:p-4">
+                <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide mb-2">Skills</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {currentAlumni.skills.map((skill) => (
+                    <span key={skill} className="app-tag text-[11px]">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </Card>
 
-        {/* Blog Management */}
-        <Card variant="accent">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-            <h2 className="text-xl font-semibold text-[var(--fg)]">
-              My Blogs
-            </h2>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setShowCreateBlog(true)}
-            >
+        <Card variant="accent" className="border-cyan-500/10 bg-gradient-to-br from-cyan-500/[0.04] to-transparent dark:from-cyan-950/15">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+            <h2 className="text-lg font-bold text-[var(--fg)]">My blogs</h2>
+            <Button variant="secondary" size="sm" onClick={() => setShowCreateBlog(true)} className="rounded-lg">
               <Plus size={16} />
-              New Blog
+              New
             </Button>
           </div>
-          
-          <div className="space-y-4">
+
+          <div className="space-y-3">
             {userBlogs.map((blog) => (
-              <div key={blog.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+              <div key={blog.id} className="app-surface p-3 sm:p-4 border-[var(--border)] shadow-sm">
                 <div>
-                  <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">
-                    {blog.title}
-                  </h3>
-                  <p className="text-xs text-[var(--muted)] mb-3">
-                    {blog.excerpt}
-                  </p>
+                  <h3 className="font-semibold text-sm text-[var(--fg)] mb-2">{blog.title}</h3>
+                  <p className="text-xs text-[var(--muted)] mb-3 line-clamp-2">{blog.excerpt}</p>
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs text-[var(--muted)]">
-                        {blog.likes} likes
-                      </span>
-                      <span className="text-xs text-[var(--muted)]">
-                        {blog.publishedAt}
-                      </span>
+                    <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
+                      <span>{blog.likes} likes</span>
+                      <span>{blog.publishedAt}</span>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="success" size="sm">
+                      <Button variant="success" size="sm" className="rounded-lg">
                         Edit
                       </Button>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => navigate(`/blog/${blog.id}`)}
-                      >
+                      <Button variant="primary" size="sm" onClick={() => navigate(`/blog/${blog.id}`)} className="rounded-lg">
                         View
                       </Button>
                     </div>
@@ -355,15 +342,13 @@ const AlumniDashboard: React.FC = () => {
                 </div>
               </div>
             ))}
-            
+
             {userBlogs.length === 0 && (
-              <div className="bg-[var(--card)] border border-[var(--border)] rounded-md p-8 text-center">
-                <BookOpen size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-                <p className="text-[var(--muted)] mb-4">
-                  You haven't published any blogs yet
-                </p>
-                <Button variant="primary" onClick={() => setShowCreateBlog(true)}>
-                  Write Your First Blog
+              <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--card)]/50 p-6 text-center">
+                <BookOpen size={36} className="mx-auto mb-3 text-cyan-600/70 dark:text-cyan-400/80" />
+                <p className="text-sm text-[var(--muted)] mb-4">No posts yet — share your story with the network.</p>
+                <Button variant="primary" onClick={() => setShowCreateBlog(true)} className="rounded-xl">
+                  Write your first blog
                 </Button>
               </div>
             )}
@@ -371,60 +356,43 @@ const AlumniDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Achievements */}
-      <Card variant="primary">
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <h2 className="text-xl font-semibold text-[var(--fg)]">
-            My Achievements
-          </h2>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowAddAchievement(true)}
-          >
+      <Card variant="primary" className="border-amber-500/10">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <h2 className="text-lg font-bold text-[var(--fg)]">Achievements</h2>
+          <Button variant="secondary" size="sm" onClick={() => setShowAddAchievement(true)} className="rounded-lg">
             <Plus size={16} />
-            Add Achievement
+            Add
           </Button>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {userAchievements.map((achievement) => (
             <div
               key={achievement.id}
-              className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-4"
+              className="rounded-xl border border-[var(--border)] bg-gradient-to-br from-amber-500/[0.06] to-transparent dark:from-amber-950/20 p-4"
             >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-md bg-[var(--primary)] flex items-center justify-center flex-shrink-0">
-                  <Award size={24} className="text-white" />
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shrink-0 shadow-sm">
+                  <Award size={20} className="text-white" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-sm text-[var(--fg)] mb-1">
-                    {achievement.title}
-                  </h3>
-                  <p className="text-xs text-[var(--muted)] mb-2">
-                    {achievement.description}
-                  </p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm text-[var(--fg)] mb-1">{achievement.title}</h3>
+                  <p className="text-xs text-[var(--muted)] mb-2 line-clamp-3">{achievement.description}</p>
                   <div className="flex items-center justify-between flex-wrap gap-2">
-                    <span className="bg-neutral-200 dark:bg-neutral-700 text-[var(--fg)] px-2 py-1 text-xs rounded">
-                      {achievement.category}
-                    </span>
-                    <span className="text-xs text-[var(--muted)]">
-                      {achievement.date}
-                    </span>
+                    <span className="app-tag text-[10px]">{achievement.category}</span>
+                    <span className="text-xs text-[var(--muted)]">{achievement.date}</span>
                   </div>
                 </div>
               </div>
             </div>
           ))}
-          
+
           {userAchievements.length === 0 && (
-            <div className="col-span-full bg-[var(--card)] border border-[var(--border)] rounded-md p-8 text-center">
-              <Award size={48} className="mx-auto mb-4 text-[var(--muted)]" />
-              <p className="text-[var(--muted)] mb-4">
-                No achievements added yet
-              </p>
-              <Button variant="primary" onClick={() => setShowAddAchievement(true)}>
-                Add Your First Achievement
+            <div className="col-span-full rounded-xl border border-dashed border-[var(--border)] p-6 text-center">
+              <Award size={36} className="mx-auto mb-3 text-amber-600/80 dark:text-amber-400/90" />
+              <p className="text-sm text-[var(--muted)] mb-4">No achievements yet.</p>
+              <Button variant="primary" onClick={() => setShowAddAchievement(true)} className="rounded-xl">
+                Add achievement
               </Button>
             </div>
           )}
@@ -439,8 +407,8 @@ const AlumniDashboard: React.FC = () => {
 
     {/* Add Achievement Modal */}
     {showAddAchievement && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <Card variant="primary" className="max-w-lg w-full">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <Card variant="primary" className="max-w-lg w-full border-violet-500/10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-[var(--fg)] flex items-center gap-2">
               <Award size={20} />
@@ -459,7 +427,7 @@ const AlumniDashboard: React.FC = () => {
                 type="text"
                 value={newAchievement.title}
                 onChange={(e) => setNewAchievement({ ...newAchievement, title: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="app-input"
                 placeholder="e.g., Best Employee of the Year"
               />
             </div>
@@ -471,7 +439,7 @@ const AlumniDashboard: React.FC = () => {
                 value={newAchievement.description}
                 onChange={(e) => setNewAchievement({ ...newAchievement, description: e.target.value })}
                 rows={3}
-                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="app-textarea min-h-[88px]"
                 placeholder="Brief description of your achievement..."
               />
             </div>
@@ -482,7 +450,7 @@ const AlumniDashboard: React.FC = () => {
               <select
                 value={newAchievement.category}
                 onChange={(e) => setNewAchievement({ ...newAchievement, category: e.target.value as Achievement['category'] })}
-                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="app-input"
               >
                 <option value="academic">Academic</option>
                 <option value="professional">Professional</option>
@@ -505,8 +473,8 @@ const AlumniDashboard: React.FC = () => {
 
     {/* Create Blog Modal */}
     {showCreateBlog && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <Card variant="primary" className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <Card variant="primary" className="max-w-2xl w-full max-h-[90vh] overflow-y-auto border-cyan-500/10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-[var(--fg)] flex items-center gap-2">
               <BookOpen size={20} />
@@ -525,7 +493,7 @@ const AlumniDashboard: React.FC = () => {
                 type="text"
                 value={blogData.title}
                 onChange={(e) => setBlogData({ ...blogData, title: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="app-input"
                 placeholder="Inspiring journey from campus to career"
               />
             </div>
@@ -537,7 +505,7 @@ const AlumniDashboard: React.FC = () => {
                 value={blogData.content}
                 onChange={(e) => setBlogData({ ...blogData, content: e.target.value })}
                 rows={8}
-                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="app-textarea min-h-[200px]"
                 placeholder="Share your story, insights, and experiences..."
               />
             </div>
@@ -549,7 +517,7 @@ const AlumniDashboard: React.FC = () => {
                 type="text"
                 value={blogData.tags}
                 onChange={(e) => setBlogData({ ...blogData, tags: e.target.value })}
-                className="w-full px-4 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2"
+                className="app-input"
                 placeholder="career, technology, mentorship"
               />
             </div>

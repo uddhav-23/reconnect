@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { isAdmin } from '../../lib/roles';
+import PageHero from '../../components/layout/PageHero';
 
 const AdminLayout: React.FC = () => {
   const { user } = useAuth();
@@ -19,21 +20,27 @@ const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
-      <h1 className="text-2xl font-semibold text-[var(--fg)] mb-2">Administration</h1>
-      <p className="text-sm text-[var(--muted)] mb-6">Moderation and verification tools</p>
-      <nav className="flex flex-wrap gap-2 mb-8 border-b border-[var(--border)] pb-4">
-        {links.map((l) => (
-          <Link
-            key={l.to}
-            to={l.to}
-            className="px-3 py-1.5 rounded-md text-sm border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] hover:border-[var(--primary)] transition-colors"
-          >
-            {l.label}
-          </Link>
-        ))}
-      </nav>
-      <Outlet />
+    <div className="min-h-screen">
+      <PageHero
+        eyebrow="Admin"
+        title="Administration"
+        titleGradientPart="Admin"
+        subtitle="Moderation, verification, and platform tools."
+      />
+      <div className="container mx-auto py-8 px-4 max-w-6xl">
+        <nav className="flex flex-wrap gap-2 mb-8 border-b border-[var(--border)] pb-4">
+          {links.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="px-3 py-2 rounded-xl text-sm font-medium border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] shadow-sm hover:border-violet-400/50 hover:shadow-md transition-all"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+        <Outlet />
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { X, MessageCircle, Bell, Users, Check, X as XIcon, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPendingConnections, getAllConnections, updateConnection, getUserById, subscribeToPendingConnections } from '../../services/firebaseFirestore';
-import { subscribeNotifications, markNotificationRead } from '../../services/platformFirestore';
+import { subscribeNotifications, markNotificationRead, markAllNotificationsRead } from '../../services/platformFirestore';
 import { Connection, User as UserType, AppNotification } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import ChatInterface from './ChatInterface';
@@ -25,6 +25,7 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
   const [loading, setLoading] = useState(true);
   const [connectionUsers, setConnectionUsers] = useState<Map<string, UserType>>(new Map());
   const [appNotifications, setAppNotifications] = useState<AppNotification[]>([]);
+  const [markAllBusy, setMarkAllBusy] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close
@@ -110,6 +111,21 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
     } catch (error: any) {
       console.error('Error rejecting connection:', error);
       alert(`Failed to reject connection: ${error.message}`);
+    }
+  };
+
+  const unreadAppCount = appNotifications.filter((n) => !n.read).length;
+
+  const handleMarkAllNotificationsRead = async () => {
+    if (!user || unreadAppCount === 0 || markAllBusy) return;
+    setMarkAllBusy(true);
+    try {
+      await markAllNotificationsRead(user.id);
+    } catch (e: unknown) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : 'Could not mark notifications as read');
+    } finally {
+      setMarkAllBusy(false);
     }
   };
 
@@ -230,6 +246,22 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
                 </div>
               ) : (
                 <div className="space-y-6">
+                  {appNotifications.length > 0 && unreadAppCount > 0 && (
+                    <div className="rounded-xl border border-violet-500/25 bg-violet-50/80 dark:bg-violet-950/30 px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-[var(--muted)]">
+                        <span className="font-semibold text-[var(--fg)]">{unreadAppCount}</span>{' '}
+                        unread
+                      </p>
+                      <button
+                        type="button"
+                        disabled={markAllBusy}
+                        onClick={() => void handleMarkAllNotificationsRead()}
+                        className="text-xs font-semibold text-violet-700 dark:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline"
+                      >
+                        {markAllBusy ? 'Marking…' : 'Mark all as read'}
+                      </button>
+                    </div>
+                  )}
                   {appNotifications.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-[var(--muted)] uppercase tracking-wide">Activity</p>

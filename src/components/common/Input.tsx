@@ -17,10 +17,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={`
-            w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]
-            focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--bg)]
+            w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--fg)]
+            focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30
             placeholder:text-neutral-400 dark:placeholder:text-neutral-500
-            transition-colors duration-200
+            transition-shadow duration-200
             ${error ? 'border-red-500' : ''}
             ${className}
           `}

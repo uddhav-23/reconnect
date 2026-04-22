@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, Building2, GraduationCap, TrendingUp, Plus, Settings, Edit, Phone, Mail, User as UserIcon } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import PageHero from '../../components/layout/PageHero';
 import AddCollegeForm from '../../components/forms/AddCollegeForm';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import CreateSubAdminForm from '../../components/forms/CreateSubAdminForm';
@@ -73,10 +74,38 @@ const SuperAdminDashboard: React.FC = () => {
     : null;
 
   const stats = [
-    { label: 'Total Alumni', value: alumni.length, icon: GraduationCap },
-    { label: 'Active Colleges', value: colleges.length, icon: Building2 },
-    { label: 'Monthly Growth', value: '12%', icon: TrendingUp },
-    { label: 'Total Users', value: '547', icon: Users },
+    {
+      label: 'Total alumni',
+      value: alumni.length,
+      icon: GraduationCap,
+      accent:
+        'border-violet-200/80 dark:border-violet-500/25 bg-gradient-to-br from-violet-50/90 to-white dark:from-violet-950/40 dark:to-[var(--card)]',
+      iconClass: 'text-violet-600 dark:text-violet-400',
+    },
+    {
+      label: 'Colleges',
+      value: colleges.length,
+      icon: Building2,
+      accent:
+        'border-cyan-200/80 dark:border-cyan-500/25 bg-gradient-to-br from-cyan-50/90 to-white dark:from-cyan-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-cyan-600 dark:text-cyan-400',
+    },
+    {
+      label: 'Growth (demo)',
+      value: '12%',
+      icon: TrendingUp,
+      accent:
+        'border-amber-200/80 dark:border-amber-500/25 bg-gradient-to-br from-amber-50/90 to-white dark:from-amber-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-amber-600 dark:text-amber-400',
+    },
+    {
+      label: 'Users (demo)',
+      value: '547',
+      icon: Users,
+      accent:
+        'border-rose-200/80 dark:border-rose-500/25 bg-gradient-to-br from-rose-50/90 to-white dark:from-rose-950/35 dark:to-[var(--card)]',
+      iconClass: 'text-rose-600 dark:text-rose-400',
+    },
   ];
 
   const handleAddCollege = async (collegeData: any) => {
@@ -303,116 +332,86 @@ const SuperAdminDashboard: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-2 text-[var(--fg)]">
-              Super Admin Dashboard
-            </h1>
-            <p className="text-base text-[var(--muted)]">
-              Welcome back, {user?.name}
-            </p>
-          </div>
-          <div className="flex gap-3 flex-wrap">
-            <Button 
-              variant="secondary" 
-              onClick={() => setShowEditProfile(true)}
-              className="flex items-center gap-2"
-            >
+    <div className="min-h-screen max-w-6xl mx-auto px-0 sm:px-2 pb-10">
+      <PageHero
+        eyebrow="Platform"
+        title="Super admin dashboard"
+        titleGradientPart="Super"
+        subtitle={<>Welcome back, <span className="font-medium text-[var(--fg)]">{user?.name}</span></>}
+        actions={
+          <div className="flex flex-wrap gap-2 justify-end max-w-xl lg:max-w-none">
+            <Button variant="secondary" onClick={() => setShowEditProfile(true)} className="flex items-center gap-2 rounded-xl h-9 text-sm">
               <Edit size={18} />
-              Edit Profile
+              Edit
             </Button>
-            <Button 
-              variant="primary" 
-              onClick={() => handleCreateUserClick('superadmin')}
-              className="flex items-center gap-2"
-            >
+            <Button variant="primary" onClick={() => handleCreateUserClick('superadmin')} className="flex items-center gap-2 rounded-xl h-9 text-sm">
               <UserIcon size={18} />
-              Create Super Admin
+              Super admin
             </Button>
-            <Button 
-              variant="success" 
-              onClick={() => handleCreateUserClick('alumni')}
-              className="flex items-center gap-2"
-            >
+            <Button variant="success" onClick={() => handleCreateUserClick('alumni')} className="flex items-center gap-2 rounded-xl h-9 text-sm">
               <GraduationCap size={18} />
-              Create Alumni
+              Alumni
             </Button>
-            <Button
-              variant="primary"
-              className="flex items-center gap-2"
-              onClick={() => navigate('/settings')}
-            >
+            <Button variant="primary" className="flex items-center gap-2 rounded-xl h-9 text-sm" onClick={() => navigate('/settings')}>
               <Settings size={18} />
               Settings
             </Button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Quick Actions - Prominent Buttons */}
-      <div className="mb-8">
-        <Card variant="primary">
-          <h2 className="text-2xl font-semibold text-[var(--fg)] mb-6 text-center">
-            Quick Actions
+      <div className="mb-6">
+        <Card variant="primary" className="border-violet-500/10 p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-[var(--fg)] mb-4 text-center sm:text-left">
+            Quick actions
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Button 
-              variant="primary" 
-              size="lg" 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+            <Button
+              variant="primary"
+              size="lg"
               onClick={handleAddCollegeClick}
-              className="flex flex-col items-center justify-center gap-3 py-8"
+              className="flex flex-col items-center justify-center gap-2 py-6 rounded-xl"
             >
-              <Building2 size={40} />
-              <span className="font-semibold text-lg">Add New College</span>
-              <span className="text-sm text-[var(--primary-fg)] opacity-90">Create college & assign sub-admin</span>
+              <Building2 size={32} />
+              <span className="font-semibold">Add college</span>
+              <span className="text-xs text-[var(--primary-fg)] opacity-90">Create & assign sub-admin</span>
             </Button>
-            
-            <Button 
-              variant="success" 
-              size="lg" 
+
+            <Button
+              variant="success"
+              size="lg"
               onClick={() => handleCreateUserClick('alumni')}
-              className="flex flex-col items-center justify-center gap-3 py-8"
+              className="flex flex-col items-center justify-center gap-2 py-6 rounded-xl"
             >
-              <GraduationCap size={40} />
-              <span className="font-semibold text-lg">Create Alumni</span>
-              <span className="text-sm text-white opacity-90">Add new alumni to network</span>
+              <GraduationCap size={32} />
+              <span className="font-semibold">Create alumni</span>
+              <span className="text-xs text-white opacity-90">Add to network</span>
             </Button>
-            
-            <Button 
-              variant="secondary" 
-              size="lg" 
+
+            <Button
+              variant="secondary"
+              size="lg"
               onClick={() => handleCreateUserClick('subadmin')}
-              className="flex flex-col items-center justify-center gap-3 py-8"
+              className="flex flex-col items-center justify-center gap-2 py-6 rounded-xl"
             >
-              <UserIcon size={40} />
-              <span className="font-semibold text-lg">Create Sub-Admin</span>
-              <span className="text-sm text-[var(--muted)]">Add new sub-admin user</span>
+              <UserIcon size={32} />
+              <span className="font-semibold">Create sub-admin</span>
+              <span className="text-sm text-[var(--muted)]">College scope</span>
             </Button>
           </div>
         </Card>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         {stats.map((stat) => (
-          <Card 
-            key={stat.label} 
-            variant="primary" 
-            className="text-center"
+          <div
+            key={stat.label}
+            className={`relative overflow-hidden rounded-xl border p-3 sm:p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${stat.accent}`}
           >
-            <div className="w-16 h-16 rounded-md bg-neutral-200 dark:bg-neutral-700 mx-auto mb-4 flex items-center justify-center shadow-subtle">
-              <stat.icon size={28} className="text-[var(--fg)]" />
-            </div>
-            <div className="text-3xl font-semibold text-[var(--fg)] mb-1">
-              {stat.value}
-            </div>
-            <div className="text-sm text-[var(--muted)]">
-              {stat.label}
-            </div>
-          </Card>
+            <stat.icon className={`w-6 h-6 sm:w-7 sm:h-7 mb-2 ${stat.iconClass}`} strokeWidth={2} />
+            <div className="text-xl sm:text-2xl font-bold text-[var(--fg)] tabular-nums leading-none">{stat.value}</div>
+            <div className="text-[11px] sm:text-xs text-[var(--muted)] mt-1 leading-snug font-medium">{stat.label}</div>
+          </div>
         ))}
       </div>
 
@@ -438,7 +437,7 @@ const SuperAdminDashboard: React.FC = () => {
           </Button>
         </div>
         
-        <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md p-6">
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)]/80 dark:bg-neutral-900/40 p-5 sm:p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-4xl font-semibold text-[var(--fg)] mb-2">
@@ -489,7 +488,7 @@ const SuperAdminDashboard: React.FC = () => {
               <p className="text-center py-4 text-[var(--muted)]">No colleges found. Add your first college!</p>
             ) : (
               colleges.map((college) => (
-              <div key={college.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+              <div key={college.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                   <h3 className="font-semibold text-[var(--fg)] mb-1">
@@ -548,7 +547,7 @@ const SuperAdminDashboard: React.FC = () => {
               <p className="text-center py-4 text-[var(--muted)]">No colleges found. Create a college first!</p>
             ) : (
               colleges.map((college) => (
-                <div key={college.id} className="bg-[var(--card)] border border-[var(--border)] rounded-md p-4">
+                <div key={college.id} className="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="flex-1">
                       <h3 className="font-semibold text-[var(--fg)] mb-1">
@@ -609,8 +608,8 @@ const SuperAdminDashboard: React.FC = () => {
         </div>
         
         <div className="space-y-4">
-          <div className="flex items-center gap-4 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)]">
-            <div className="w-12 h-12 rounded-md bg-[var(--primary)] flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 bg-[var(--card)]/80 dark:bg-neutral-900/40 rounded-xl border border-[var(--border)]">
+            <div className="w-12 h-12 rounded-xl bg-[var(--primary)] flex items-center justify-center">
               <Users size={20} className="text-white" />
             </div>
             <div className="flex-1">
@@ -624,8 +623,8 @@ const SuperAdminDashboard: React.FC = () => {
             <span className="text-sm text-[var(--muted)]">2 min ago</span>
           </div>
           
-          <div className="flex items-center gap-4 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)]">
-            <div className="w-12 h-12 rounded-md bg-[var(--primary)] flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 bg-[var(--card)]/80 dark:bg-neutral-900/40 rounded-xl border border-[var(--border)]">
+            <div className="w-12 h-12 rounded-xl bg-[var(--primary)] flex items-center justify-center">
               <Building2 size={20} className="text-white" />
             </div>
             <div className="flex-1">
@@ -688,7 +687,7 @@ const SuperAdminDashboard: React.FC = () => {
             <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">
               ✅ User Created Successfully!
             </h2>
-            <div className="bg-neutral-100 dark:bg-neutral-800 rounded-md border border-[var(--border)] p-6 mb-4">
+            <div className="bg-[var(--card)]/80 dark:bg-neutral-900/40 rounded-xl border border-[var(--border)] p-6 mb-4">
               <p className="font-semibold text-[var(--fg)] mb-4">Demo Login Credentials</p>
               <div className="space-y-3 text-left">
                 <div>

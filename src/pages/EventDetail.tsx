@@ -63,33 +63,39 @@ const EventDetail: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen py-10 px-4 container mx-auto max-w-3xl">
-      <Button variant="secondary" className="mb-6 flex items-center gap-2" onClick={() => navigate('/events')}>
-        <ArrowLeft size={16} />
-        All events
-      </Button>
-      <h1 className="text-3xl font-semibold text-[var(--fg)] mb-4">{ev.title}</h1>
-      <div className="flex flex-wrap gap-4 text-sm text-[var(--muted)] mb-6">
-        <span className="flex items-center gap-2">
-          <Calendar size={16} />
-          {new Date(ev.startAt).toLocaleString()}
-        </span>
-        <span className="flex items-center gap-2">
-          <MapPin size={16} />
-          {ev.location}
-        </span>
-        <span className="flex items-center gap-2">
-          <Users size={16} />
-          {ev.attendeeIds?.length || 0} attending
-        </span>
+    <div className="min-h-screen">
+      <section className="home-hero-mesh border-b border-[var(--border)]/70 py-8 sm:py-10 px-4">
+        <div className="container mx-auto max-w-3xl">
+          <Button variant="secondary" className="mb-6 flex items-center gap-2 rounded-xl" onClick={() => navigate('/events')}>
+            <ArrowLeft size={16} />
+            All events
+          </Button>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-[var(--fg)] mb-4 leading-tight">{ev.title}</h1>
+          <div className="flex flex-wrap gap-4 text-sm text-[var(--muted)] mb-3">
+            <span className="flex items-center gap-2">
+              <Calendar size={16} className="text-violet-500 shrink-0" />
+              {new Date(ev.startAt).toLocaleString()}
+            </span>
+            <span className="flex items-center gap-2">
+              <MapPin size={16} className="text-cyan-600 shrink-0" />
+              {ev.location}
+            </span>
+            <span className="flex items-center gap-2">
+              <Users size={16} className="text-teal-600 shrink-0" />
+              {ev.attendeeIds?.length || 0} attending
+            </span>
+          </div>
+          <p className="text-sm text-[var(--muted)]">Organized by {organizerName}</p>
+        </div>
+      </section>
+      <div className="py-8 sm:py-10 px-4 container mx-auto max-w-3xl">
+        <div className="prose dark:prose-invert max-w-none text-[var(--fg)] whitespace-pre-wrap mb-8 leading-relaxed">{ev.description}</div>
+        {user && (
+          <Button variant="primary" className="rounded-xl" onClick={rsvp}>
+            {ev.attendeeIds?.includes(user.id) ? 'You are attending' : 'RSVP'}
+          </Button>
+        )}
       </div>
-      <p className="text-[var(--muted)] mb-2">Organized by {organizerName}</p>
-      <div className="prose dark:prose-invert max-w-none text-[var(--fg)] whitespace-pre-wrap mb-8">{ev.description}</div>
-      {user && (
-        <Button variant="primary" onClick={rsvp}>
-          {ev.attendeeIds?.includes(user.id) ? 'You are attending' : 'RSVP'}
-        </Button>
-      )}
     </div>
   );
 };

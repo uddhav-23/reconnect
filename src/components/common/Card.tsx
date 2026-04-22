@@ -20,7 +20,7 @@ const Card: React.FC<CardProps> = ({
   return (
     <div
       className={`
-        border border-[var(--border)] shadow-card rounded-lg p-6 
+        border border-[var(--border)] rounded-2xl p-6 shadow-lg shadow-black/[0.04] dark:shadow-black/20
         ${variantClasses[variant]} ${className}
       `}
     >

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, Heart, User, BookOpen, PenLine } from 'lucide-react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
+import PageHero from '../components/layout/PageHero';
 import { getBlogs } from '../services/firebaseFirestore';
 import { useAuth } from '../contexts/AuthContext';
 import { mergeDisplayBlogs } from '../lib/blogDisplayMerge';
@@ -81,21 +82,17 @@ const Blogs: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <section className="py-20 px-4 bg-gradient-to-b from-[var(--bg)] to-neutral-100 dark:to-neutral-900">
-        <div className="container mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight mb-4">
-            Alumni Blogs
-          </h1>
-          <p className="text-base md:text-lg text-[var(--muted)] max-w-2xl mx-auto">
-            Stories • Insights • Experiences — including featured stories and posts from our community
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Community"
+        title="Alumni blogs"
+        titleGradientPart="blogs"
+        subtitle="Stories, insights, and experiences from the network — including featured posts and your own drafts from the dashboard."
+      />
 
-      <section className="py-10 px-4">
+      <section className="app-page-section">
         <div className="container mx-auto max-w-3xl">
           {user && (
-            <Card variant="secondary" className="p-6 mb-10">
+            <Card variant="secondary" className="p-6 mb-10 border-violet-500/10 bg-gradient-to-br from-violet-500/[0.04] to-cyan-500/[0.03] dark:from-violet-900/15 dark:to-cyan-900/10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
                   <h2 className="text-lg font-semibold text-[var(--fg)] flex items-center gap-2">
@@ -123,7 +120,7 @@ const Blogs: React.FC = () => {
                     placeholder="Title"
                     value={composer.title}
                     onChange={(e) => setComposer({ ...composer, title: e.target.value })}
-                    className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                    className="app-input"
                     required
                   />
                   <textarea
@@ -131,7 +128,7 @@ const Blogs: React.FC = () => {
                     value={composer.content}
                     onChange={(e) => setComposer({ ...composer, content: e.target.value })}
                     rows={6}
-                    className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                    className="app-textarea min-h-[160px]"
                     required
                   />
                   <input
@@ -139,14 +136,14 @@ const Blogs: React.FC = () => {
                     placeholder="Short excerpt (optional)"
                     value={composer.excerpt}
                     onChange={(e) => setComposer({ ...composer, excerpt: e.target.value })}
-                    className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                    className="app-input"
                   />
                   <input
                     type="text"
                     placeholder="Tags: career, alumni, tech"
                     value={composer.tags}
                     onChange={(e) => setComposer({ ...composer, tags: e.target.value })}
-                    className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--card)] text-[var(--fg)] text-sm"
+                    className="app-input"
                   />
                   <Button type="submit" variant="primary" disabled={saving}>
                     {saving ? 'Saving…' : 'Publish quick post'}
@@ -158,7 +155,7 @@ const Blogs: React.FC = () => {
         </div>
       </section>
 
-      <section className="py-8 px-4 pb-20">
+      <section className="app-page-section pb-20">
         <div className="container mx-auto">
           {loading ? (
             <div className="text-center py-8">
@@ -169,20 +166,20 @@ const Blogs: React.FC = () => {
               <p className="text-[var(--muted)]">No blogs found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {blogs.map((blog) => (
-                <Card key={blog.id} variant="primary">
-                  <div className="h-40 rounded-md bg-neutral-200 dark:bg-neutral-700 mb-4 flex items-center justify-center">
-                    <BookOpen size={40} className="text-[var(--muted)]" />
+                <Card key={blog.id} variant="primary" className="overflow-hidden flex flex-col border-violet-500/10 hover:border-violet-400/30 transition-colors">
+                  <div className="h-40 -mx-6 -mt-6 mb-4 rounded-t-2xl bg-gradient-to-br from-cyan-500/25 via-teal-500/15 to-violet-600/25 flex items-center justify-center">
+                    <BookOpen size={40} className="text-cyan-600 dark:text-cyan-400" />
                   </div>
 
-                  <h2 className="font-semibold text-base mb-2 text-[var(--fg)]">{blog.title}</h2>
+                  <h2 className="font-bold text-lg mb-2 text-[var(--fg)] line-clamp-2">{blog.title}</h2>
 
-                  <p className="text-sm mb-4 text-[var(--muted)] line-clamp-3">{blog.excerpt}</p>
+                  <p className="text-sm mb-4 text-[var(--muted)] line-clamp-3 flex-1">{blog.excerpt}</p>
 
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-md bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
-                      <User size={14} />
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500/30 to-fuchsia-500/30 flex items-center justify-center">
+                      <User size={16} className="text-violet-700 dark:text-violet-300" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-[var(--fg)]">{blog.author?.name ?? 'Alumni'}</p>
@@ -204,10 +201,7 @@ const Blogs: React.FC = () => {
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {(blog.tags || []).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-neutral-100 dark:bg-neutral-800 text-[var(--fg)] px-2 py-1 border border-[var(--border)] text-xs rounded"
-                        >
+                        <span key={tag} className="app-tag">
                           #{tag}
                         </span>
                       ))}
@@ -226,10 +220,10 @@ const Blogs: React.FC = () => {
         </div>
       </section>
 
-      <section className="py-16 px-4 border-t border-[var(--border)]">
+      <section className="py-14 sm:py-16 px-4 border-t border-[var(--border)] home-hero-mesh">
         <div className="container mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-semibold text-[var(--fg)] mb-4">Share your story</h2>
-          <p className="text-base text-[var(--muted)] mb-6 max-w-xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold text-[var(--fg)] mb-4">Share your story</h2>
+          <p className="text-base text-[var(--muted)] mb-6 max-w-xl mx-auto leading-relaxed">
             Long-form posts with drafts and publishing live on your dashboard. Quick posts above stay on this device
             only — perfect for demos and notes.
           </p>

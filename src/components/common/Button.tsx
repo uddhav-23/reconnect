@@ -13,7 +13,8 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--primary)] focus:ring-offset-[var(--bg)] disabled:opacity-50 disabled:pointer-events-none shadow-subtle hover:shadow-card';
+  const baseClasses =
+    'inline-flex items-center justify-center rounded-xl font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500/60 focus:ring-offset-[var(--bg)] disabled:opacity-50 disabled:pointer-events-none shadow-md shadow-black/[0.06] hover:shadow-lg dark:shadow-black/25';
   
   const variantClasses = {
     primary: 'bg-[var(--primary)] text-[var(--primary-fg)] hover:bg-primary-600',
