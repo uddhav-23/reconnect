@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, type User as FirebaseAuthUser } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { User, AuthContextType } from '../types';
 import {
@@ -19,6 +19,17 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+/** Firestore profile may omit `email`; Auth is the source of truth for sign-in address. */
+function sessionUserFromFirestore(firebaseUser: FirebaseAuthUser, userData: User): User {
+  const authEmail = firebaseUser.email?.trim() ?? '';
+  const docEmail = typeof userData.email === 'string' ? userData.email.trim() : '';
+  return {
+    ...userData,
+    id: firebaseUser.uid,
+    email: authEmail || docEmail,
+  };
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Get user data from Firestore
           const userData = await getCurrentUserData(firebaseUser.uid);
           if (userData) {
-            setUser(userData);
+            setUser(sessionUserFromFirestore(firebaseUser, userData));
           }
         } catch (error) {
           console.error('Error fetching user data:', error);

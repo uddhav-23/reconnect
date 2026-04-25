@@ -108,14 +108,14 @@ const SubAdminDashboard: React.FC = () => {
       };
 
       await createUserAsAdmin(alumniData.email, alumniData.password, alumniPayload);
-      
-      // Reload data
-      await loadData();
-      
-      // Show credentials
+
+      setShowAddAlumni(false);
       const credentials = `✅ Alumni Created Successfully!\n\nDemo Login Credentials:\nEmail: ${alumniData.email}\nPassword: ${alumniData.password}\n\nShare these with the alumni for login.`;
       alert(credentials);
-      setShowAddAlumni(false);
+      void loadData().catch((err) => {
+        console.error('SubAdmin dashboard refresh after create alumni:', err);
+        alert('Alumni was created, but refreshing the list failed. Reload the page to see updates.');
+      });
     } catch (error: unknown) {
       console.error('Error creating alumni:', error);
       const msg = error instanceof Error ? error.message : String(error);

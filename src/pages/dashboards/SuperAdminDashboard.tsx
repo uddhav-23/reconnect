@@ -11,6 +11,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getColleges, createCollege, updateCollege, getAlumni } from '../../services/firebaseFirestore';
 import { createUserAsAdmin, isEmailAlreadyInUseError } from '../../services/firebaseAuth';
 import CreateUserForm from '../../components/forms/CreateUserForm';
+import { isCurrentSessionPlatformOwner } from '../../lib/platformOwner';
 
 const SuperAdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -228,6 +229,18 @@ const SuperAdminDashboard: React.FC = () => {
 
   const handleCreateUser = async (userData: any) => {
     try {
+      if (userData.role === 'superadmin' && !isCurrentSessionPlatformOwner(user)) {
+        alert(
+          'Only the platform owner can create additional super-admins. Other super-admins can manage colleges, users, and content but cannot add new super-admins.'
+        );
+        return;
+      }
+
+      if (userData.role === 'subadmin' && !userData.collegeId) {
+        alert('Sub-admin must be assigned to a college. Please select one in the form.');
+        return;
+      }
+
       // Prepare user data, removing undefined fields
       const userPayload: any = {
         name: userData.name,
@@ -267,16 +280,19 @@ const SuperAdminDashboard: React.FC = () => {
 
       await createUserAsAdmin(userData.email, userData.password, userPayload);
 
-      // Show credentials
+      // Close the form first so the button does not stay on "Creating…" while Firestore refetches.
+      setShowCreateUser(false);
       setCreatedCredentials({
         email: userData.email,
         password: userData.password,
       });
 
-      // Reload data
-      await loadData();
-      
-      setShowCreateUser(false);
+      void loadData().catch((err) => {
+        console.error('Dashboard refresh after create user:', err);
+        alert(
+          'The account was created successfully, but refreshing the list on this page failed. Reload the page to see the latest data.'
+        );
+      });
     } catch (error: unknown) {
       console.error('Error creating user:', error);
       const msg = error instanceof Error ? error.message : String(error);
@@ -295,6 +311,12 @@ const SuperAdminDashboard: React.FC = () => {
   };
 
   const handleCreateUserClick = (role: 'superadmin' | 'subadmin' | 'alumni' | 'student' | 'user') => {
+    if (role === 'superadmin' && !isCurrentSessionPlatformOwner(user)) {
+      alert(
+        'Only the platform owner account can create another super-admin. Sign in with the owner email if you need this action.'
+      );
+      return;
+    }
     setCreateUserRole(role);
     setShowCreateUser(true);
   };
@@ -358,7 +380,17 @@ const SuperAdminDashboard: React.FC = () => {
               <Edit size={18} />
               Edit
             </Button>
-            <Button variant="primary" onClick={() => handleCreateUserClick('superadmin')} className="flex items-center gap-2 rounded-xl h-9 text-sm">
+            <Button
+              variant="primary"
+              onClick={() => handleCreateUserClick('superadmin')}
+              disabled={!isCurrentSessionPlatformOwner(user)}
+              title={
+                isCurrentSessionPlatformOwner(user)
+                  ? 'Create another super-admin account'
+                  : 'Only the platform owner can create super-admins'
+              }
+              className="flex items-center gap-2 rounded-xl h-9 text-sm disabled:opacity-50"
+            >
               <UserIcon size={18} />
               Super admin
             </Button>
@@ -683,6 +715,7 @@ const SuperAdminDashboard: React.FC = () => {
     {/* Create User Modal */}
     {showCreateUser && (
       <CreateUserForm
+        key={createUserRole}
         userRole={createUserRole}
         colleges={colleges.map(c => ({ id: c.id, name: c.name }))}
         onClose={() => {
@@ -695,7 +728,7 @@ const SuperAdminDashboard: React.FC = () => {
 
     {/* Credentials Display Modal */}
     {createdCredentials && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
         <Card variant="primary" className="max-w-md w-full">
           <div className="text-center">
             <h2 className="text-2xl font-semibold text-[var(--fg)] mb-4">

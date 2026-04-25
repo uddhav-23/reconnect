@@ -61,7 +61,9 @@ export const loginUser = async (email: string, password: string): Promise<User> 
     }
     
     const userData = userDoc.data() as User;
-    return { ...userData, id: firebaseUser.uid };
+    const authEmail = firebaseUser.email?.trim() ?? '';
+    const docEmail = typeof userData.email === 'string' ? userData.email.trim() : '';
+    return { ...userData, id: firebaseUser.uid, email: authEmail || docEmail };
   } catch (error: any) {
     throw new Error(error.message || 'Login failed');
   }
@@ -138,15 +140,37 @@ export const createUserAsAdmin = async (
       cleanedUser = { ...cleanedUser, verifiedAlumni: true };
     }
 
-    await setDoc(doc(db, 'users', firebaseUser.uid), cleanedUser);
+    try {
+      await setDoc(doc(db, 'users', firebaseUser.uid), cleanedUser);
+    } catch (firestoreErr: unknown) {
+      try {
+        await deleteUser(firebaseUser);
+      } catch (rollbackErr) {
+        console.error(
+          'createUserAsAdmin: Firestore write failed and Auth rollback failed. Remove user manually:',
+          firebaseUser.uid,
+          rollbackErr
+        );
+      }
+      const msg =
+        firestoreErr instanceof Error ? firestoreErr.message : String(firestoreErr);
+      throw new Error(msg || 'Failed to save user profile');
+    }
 
     if (userData.name) {
-      await updateProfile(firebaseUser, { displayName: userData.name });
+      try {
+        await updateProfile(firebaseUser, { displayName: userData.name });
+      } catch (profileErr) {
+        if (import.meta.env.DEV) {
+          console.warn('createUserAsAdmin: displayName update skipped:', profileErr);
+        }
+      }
     }
 
     await signOut(credentialProvisionerAuth);
     return cleanedUser as User;
   } catch (error: any) {
+    await signOut(credentialProvisionerAuth).catch(() => {});
     throw new Error(error.message || 'User creation failed');
   }
 };

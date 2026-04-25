@@ -25,6 +25,37 @@ service cloud.firestore {
       return isSuperAdmin() || isSubAdmin();
     }
 
+    /**
+     * Only this account may create new super-admins or promote users to super-admin.
+     * Must match app env VITE_PLATFORM_OWNER_EMAIL (default uddhavjoshi24@gmail.com).
+     */
+    function isPlatformOwner() {
+      return request.auth != null
+        && request.auth.token.keys().hasAll(['email'])
+        && request.auth.token.email.lower() == 'uddhavjoshi24@gmail.com';
+    }
+
+    /** Super-admin creating a user document (not self): blocked if new role is superadmin unless owner. */
+    function superAdminMayCreateThisUser() {
+      return isSuperAdmin() && (
+        !request.resource.data.keys().hasAll(['role'])
+        || request.resource.data.role != 'superadmin'
+        || isPlatformOwner()
+      );
+    }
+
+    /**
+     * Super-admin updating a user: any super-admin may edit existing super-admins;
+     * promoting a non–super-admin to super-admin is owner-only.
+     */
+    function superAdminMayUpdateThisUser() {
+      return isSuperAdmin() && (
+        !(request.resource.data.keys().hasAll(['role']) && request.resource.data.role == 'superadmin')
+        || (resource.data.keys().hasAll(['role']) && resource.data.role == 'superadmin')
+        || isPlatformOwner()
+      );
+    }
+
     function isMessageParticipant() {
       return request.auth != null
         && (resource.data.senderId == request.auth.uid
@@ -50,11 +81,38 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid in g.members;
     }
 
+    /** Sub-admin's collegeId from their own profile (for scoping alumni/student creates). */
+    function actingUserCollegeId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.collegeId;
+    }
+
     match /users/{userId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      // Self signup: doc id must match Auth uid. Admins provision other users via setDoc(users/{newUid}).
+      allow create: if request.auth != null && (
+        request.auth.uid == userId
+        || superAdminMayCreateThisUser()
+        || (
+          isSubAdmin()
+          && request.resource.data.role in ['alumni', 'student', 'user']
+          && request.resource.data.keys().hasAll(['collegeId'])
+          && request.resource.data.collegeId == actingUserCollegeId()
+        )
+      );
+      allow update: if request.auth != null && (
+        request.auth.uid == userId
+        || superAdminMayUpdateThisUser()
+        || (
+          isSubAdmin()
+          && resource.data.role in ['alumni', 'student', 'user']
+          && resource.data.keys().hasAll(['collegeId'])
+          && resource.data.collegeId == actingUserCollegeId()
+        )
+      );
+      allow delete: if request.auth != null && (
+        request.auth.uid == userId
+        || isSuperAdmin()
+      );
     }
 
     match /colleges/{collegeId} {

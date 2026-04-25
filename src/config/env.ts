@@ -9,6 +9,13 @@ const optional = (key: string): string | undefined => {
 };
 
 export const env = {
+  /**
+   * Only this email may create or promote super-admins in the app UI; must match
+   * `isPlatformOwner()` in firestore.rules (same default if env unset).
+   */
+  platformOwnerEmail: (): string =>
+    (optional('VITE_PLATFORM_OWNER_EMAIL') || 'uddhavjoshi24@gmail.com').trim().toLowerCase(),
+
   /** Comma-separated email domains that auto-verify alumni (e.g. @college.edu) */
   institutionalEmailDomains: (): string[] => {
     const raw = optional('VITE_INSTITUTIONAL_EMAIL_DOMAINS') || '';
