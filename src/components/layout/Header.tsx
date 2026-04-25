@@ -22,6 +22,7 @@ import { subscribeNotifications } from '../../services/platformFirestore';
 import { isAdmin } from '../../lib/roles';
 import Button from '../common/Button';
 import SocialPanel from '../common/SocialPanel';
+import type { AppNotification } from '../../types';
 
 const navLinks = [
   { to: '/alumni', label: 'Alumni', icon: User },
@@ -47,10 +48,13 @@ const Header: React.FC = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [unreadAppNotifs, setUnreadAppNotifs] = useState(0);
+  const [topNotification, setTopNotification] = useState<AppNotification | null>(null);
   const [buttonPosition, setButtonPosition] = useState<{ top: number; right: number } | null>(null);
   const connectionsButtonRef = useRef<HTMLButtonElement>(null);
   const messagesButtonRef = useRef<HTMLButtonElement>(null);
   const notificationsButtonRef = useRef<HTMLButtonElement>(null);
+  const seenNotificationIdsRef = useRef<Set<string>>(new Set());
+  const hasHydratedNotificationsRef = useRef(false);
 
   useEffect(() => {
     if (!user) {
@@ -96,13 +100,38 @@ const Header: React.FC = () => {
   useEffect(() => {
     if (!user) {
       setUnreadAppNotifs(0);
+      setTopNotification(null);
+      seenNotificationIdsRef.current.clear();
+      hasHydratedNotificationsRef.current = false;
       return;
     }
     const unsub = subscribeNotifications(user.id, (items) => {
       setUnreadAppNotifs(items.filter((n) => !n.read).length);
+
+      const incomingIds = new Set(items.map((n) => n.id));
+      if (!hasHydratedNotificationsRef.current) {
+        seenNotificationIdsRef.current = incomingIds;
+        hasHydratedNotificationsRef.current = true;
+        return;
+      }
+
+      const latestNew = items.find((n) => !seenNotificationIdsRef.current.has(n.id));
+      if (latestNew) {
+        setTopNotification(latestNew);
+      }
+
+      seenNotificationIdsRef.current = incomingIds;
     });
     return () => unsub();
   }, [user]);
+
+  useEffect(() => {
+    if (!topNotification) return;
+    const timeout = window.setTimeout(() => {
+      setTopNotification(null);
+    }, 10000);
+    return () => window.clearTimeout(timeout);
+  }, [topNotification]);
 
   const handleLogout = () => {
     logout();
@@ -134,6 +163,29 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-[var(--card)]/80 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--card)/0.65] border-[var(--border)]">
+      {topNotification && (
+        <div className="pointer-events-none fixed inset-x-0 top-3 z-[70] flex justify-center px-3">
+          <div className="pointer-events-auto w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--card)]/95 shadow-xl backdrop-blur">
+            <div className="flex items-start gap-3 p-3">
+              <div className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-violet-600 dark:text-violet-300">
+                <Bell size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-[var(--fg)]">{topNotification.title || 'New notification'}</p>
+                <p className="mt-0.5 line-clamp-2 text-xs text-[var(--muted)]">{topNotification.body || 'You received a new notification.'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTopNotification(null)}
+                className="rounded-md p-1 text-[var(--muted)] transition-colors hover:bg-neutral-100 hover:text-[var(--fg)] dark:hover:bg-neutral-800"
+                aria-label="Dismiss notification popup"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="container mx-auto max-w-full px-3 sm:px-4 py-2.5 sm:py-3 relative">
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2 min-w-0 shrink">
