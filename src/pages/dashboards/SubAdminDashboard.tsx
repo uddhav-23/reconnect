@@ -8,7 +8,7 @@ import AddAlumniForm from '../../components/forms/AddAlumniForm';
 import EditProfileForm from '../../components/forms/EditProfileForm';
 import { useAuth } from '../../contexts/AuthContext';
 import { getAlumni, updateAlumni, deleteAlumni, getBlogs, deleteBlog } from '../../services/firebaseFirestore';
-import { createUserAsAdmin } from '../../services/firebaseAuth';
+import { createUserAsAdmin, isEmailAlreadyInUseError } from '../../services/firebaseAuth';
 import EditAlumniForm from '../../components/forms/EditAlumniForm';
 
 const SubAdminDashboard: React.FC = () => {
@@ -116,9 +116,18 @@ const SubAdminDashboard: React.FC = () => {
       const credentials = `✅ Alumni Created Successfully!\n\nDemo Login Credentials:\nEmail: ${alumniData.email}\nPassword: ${alumniData.password}\n\nShare these with the alumni for login.`;
       alert(credentials);
       setShowAddAlumni(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating alumni:', error);
-      alert(`Failed to create alumni: ${error.message}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      if (isEmailAlreadyInUseError(error)) {
+        alert(
+          'This email is already registered in Firebase Authentication.\n\n' +
+            'Use a different email, or remove the duplicate account in Firebase Console → Authentication if it was created by mistake.\n\n' +
+            `Technical detail: ${msg}`
+        );
+      } else {
+        alert(`Failed to create alumni: ${msg}`);
+      }
     }
   };
 

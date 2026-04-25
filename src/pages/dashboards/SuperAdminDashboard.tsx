@@ -9,7 +9,7 @@ import EditProfileForm from '../../components/forms/EditProfileForm';
 import CreateSubAdminForm from '../../components/forms/CreateSubAdminForm';
 import { useAuth } from '../../contexts/AuthContext';
 import { getColleges, createCollege, updateCollege, getAlumni } from '../../services/firebaseFirestore';
-import { createUserAsAdmin } from '../../services/firebaseAuth';
+import { createUserAsAdmin, isEmailAlreadyInUseError } from '../../services/firebaseAuth';
 import CreateUserForm from '../../components/forms/CreateUserForm';
 
 const SuperAdminDashboard: React.FC = () => {
@@ -204,9 +204,9 @@ const SuperAdminDashboard: React.FC = () => {
           collegeId: selectedCollege.id,
           phone: payload.adminContactNumber,
         });
-      } catch (error: any) {
-        // User might already exist, that's okay
-        if (!error.message.includes('already in use')) {
+      } catch (error: unknown) {
+        // Same email was already registered when the college was created (Add college flow).
+        if (!isEmailAlreadyInUseError(error)) {
           throw error;
         }
       }
@@ -214,7 +214,10 @@ const SuperAdminDashboard: React.FC = () => {
       // Reload data
       await loadData();
 
-      alert('Sub-admin credentials saved successfully!');
+      alert(
+        'Sub-admin contact details saved on the college.\n\n' +
+          'If this email already had an account (for example from when the college was first added), no new login was created—that is normal.'
+      );
       setShowSubAdminForm(false);
       setSelectedCollegeId(null);
     } catch (error: any) {
@@ -274,9 +277,20 @@ const SuperAdminDashboard: React.FC = () => {
       await loadData();
       
       setShowCreateUser(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating user:', error);
-      alert(`Failed to create user: ${error.message}`);
+      const msg = error instanceof Error ? error.message : String(error);
+      if (isEmailAlreadyInUseError(error)) {
+        alert(
+          'This email is already registered in Firebase Authentication for this app.\n\n' +
+            'Common cases:\n' +
+            '• You already created this user, or they signed up themselves.\n' +
+            '• Adding a college already created a sub-admin with the college admin email—use a different email for another sub-admin, or manage the existing user in Firebase Console → Authentication.\n\n' +
+            `Technical detail: ${msg}`
+        );
+      } else {
+        alert(`Failed to create user: ${msg}`);
+      }
     }
   };
 

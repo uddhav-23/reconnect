@@ -22,6 +22,18 @@ import { auth, db, credentialProvisionerAuth } from '../config/firebase';
 import { emailMatchesInstitutionalDomain } from '../config/env';
 import { User } from '../types';
 
+/** Firebase Auth: email is already registered for this project (same Firebase project as the app). */
+export function isEmailAlreadyInUseError(error: unknown): boolean {
+  const e = error as { code?: string; message?: string };
+  if (e?.code === 'auth/email-already-in-use') return true;
+  const msg = typeof e?.message === 'string' ? e.message : '';
+  return (
+    msg.includes('email-already-in-use') ||
+    msg.includes('auth/email-already-in-use') ||
+    /already\s+in\s+use/i.test(msg)
+  );
+}
+
 // Helper to remove undefined fields (Firestore doesn't allow undefined)
 const removeUndefined = (obj: any): any => {
   const cleaned: any = {};
