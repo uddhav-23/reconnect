@@ -3,7 +3,12 @@ import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { X, MessageCircle, Bell, Users, Check, X as XIcon, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getPendingConnections, getAllConnections, updateConnection, getUserById, subscribeToPendingConnections } from '../../services/firebaseFirestore';
-import { subscribeNotifications, markNotificationRead, markAllNotificationsRead } from '../../services/platformFirestore';
+import {
+  subscribeNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  clearReadNotifications,
+} from '../../services/platformFirestore';
 import { Connection, User as UserType, AppNotification } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import ChatInterface from './ChatInterface';
@@ -26,6 +31,7 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
   const [connectionUsers, setConnectionUsers] = useState<Map<string, UserType>>(new Map());
   const [appNotifications, setAppNotifications] = useState<AppNotification[]>([]);
   const [markAllBusy, setMarkAllBusy] = useState(false);
+  const [clearReadBusy, setClearReadBusy] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close
@@ -115,6 +121,7 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
   };
 
   const unreadAppCount = appNotifications.filter((n) => !n.read).length;
+  const readAppCount = appNotifications.length - unreadAppCount;
 
   const handleMarkAllNotificationsRead = async () => {
     if (!user || unreadAppCount === 0 || markAllBusy) return;
@@ -126,6 +133,19 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
       alert(e instanceof Error ? e.message : 'Could not mark notifications as read');
     } finally {
       setMarkAllBusy(false);
+    }
+  };
+
+  const handleClearReadNotifications = async () => {
+    if (!user || readAppCount === 0 || clearReadBusy) return;
+    setClearReadBusy(true);
+    try {
+      await clearReadNotifications(user.id);
+    } catch (e: unknown) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : 'Could not clear old notifications');
+    } finally {
+      setClearReadBusy(false);
     }
   };
 
@@ -246,20 +266,31 @@ const SocialPanel: React.FC<SocialPanelProps> = ({ initialTab = 'messages', onCl
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {appNotifications.length > 0 && unreadAppCount > 0 && (
+                  {appNotifications.length > 0 && (
                     <div className="rounded-xl border border-violet-500/25 bg-violet-50/80 dark:bg-violet-950/30 px-3 py-2.5 flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-[var(--muted)]">
-                        <span className="font-semibold text-[var(--fg)]">{unreadAppCount}</span>{' '}
-                        unread
+                        <span className="font-semibold text-[var(--fg)]">{unreadAppCount}</span> unread
+                        {' · '}
+                        <span className="font-semibold text-[var(--fg)]">{readAppCount}</span> old
                       </p>
-                      <button
-                        type="button"
-                        disabled={markAllBusy}
-                        onClick={() => void handleMarkAllNotificationsRead()}
-                        className="text-xs font-semibold text-violet-700 dark:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline"
-                      >
-                        {markAllBusy ? 'Marking…' : 'Mark all as read'}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          disabled={unreadAppCount === 0 || markAllBusy}
+                          onClick={() => void handleMarkAllNotificationsRead()}
+                          className="text-xs font-semibold text-violet-700 dark:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline"
+                        >
+                          {markAllBusy ? 'Marking…' : 'Mark all as read'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={readAppCount === 0 || clearReadBusy}
+                          onClick={() => void handleClearReadNotifications()}
+                          className="text-xs font-semibold text-violet-700 dark:text-violet-300 hover:underline disabled:opacity-50 disabled:no-underline"
+                        >
+                          {clearReadBusy ? 'Clearing…' : 'Clear old'}
+                        </button>
+                      </div>
                     </div>
                   )}
                   {appNotifications.length > 0 && (

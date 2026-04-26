@@ -582,6 +582,17 @@ export async function markAllNotificationsRead(userId: string): Promise<void> {
   await batch.commit();
 }
 
+export async function clearReadNotifications(userId: string): Promise<void> {
+  const items = await getNotifications(userId);
+  const readItems = items.filter((n) => n.read);
+  if (readItems.length === 0) return;
+  const batch = writeBatch(db);
+  readItems.forEach((n) => {
+    batch.delete(doc(db, 'notifications', n.id));
+  });
+  await batch.commit();
+}
+
 /** Admin or system use — creates notification for a user */
 export async function createAppNotification(n: Omit<AppNotification, 'id' | 'createdAt' | 'read'>): Promise<string> {
   const ref = await addDoc(
